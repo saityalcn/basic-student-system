@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
 #define CHAR_SIZE 30
 
 typedef struct{
@@ -62,7 +61,6 @@ int main(void){
 	STUDENT *tailOfStudentsList;
 	CLASS *headOfClassesList;
 	
-
 	headOfClassesList = NULL;
 	headOfStudentsList = NULL;
 	
@@ -161,6 +159,8 @@ STUDENT* createStudent(FILE *fp){
 	strcpy(sp->surname, sn);
 	sp->totalCredit = totalCredit;
 	sp->numOfClasses = numOfClasses;
+	
+	sp->next = NULL;
 	
 	
 	return sp;
@@ -261,11 +261,15 @@ void printStudentList(STUDENT **head){
 	printf("ID\t\tName\tSurname\tNum Of Classes\tTotal Credit\n");
 	
 	ptr = *head;
-
-	printf("%d\t%s\t%s\t%d\t\t%d\n", (*head)->ID, (*head)->name, (*head)->surname, (*head)->numOfClasses, (*head)->totalCredit);
-
+	
+	while(ptr != NULL){
+		printf("%d\t%s\t%s\t%d\t\t%d\n", ptr->ID, ptr->name, ptr->surname, ptr->numOfClasses, ptr->totalCredit);
+		ptr = ptr->next;
+	}
 }
 
+
+/*
 STUDENT* createStudent(){
 	
 		
@@ -291,10 +295,8 @@ STUDENT* createStudent(){
 	strcpy(sp->surname, sn);
 	sp->totalCredit = 0;
 	sp->numOfClasses = 0;
-	sp->next = NULL;
 	
-
 	return sp;	
 
 }
-
+*/
