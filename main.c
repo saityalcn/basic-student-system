@@ -266,8 +266,6 @@ void printStudentList(STUDENT **head){
 
 }
 
-/*
-
 STUDENT* createStudent(){
 	
 		
@@ -293,9 +291,10 @@ STUDENT* createStudent(){
 	strcpy(sp->surname, sn);
 	sp->totalCredit = 0;
 	sp->numOfClasses = 0;
+	sp->next = NULL;
 	
-	
+
 	return sp;	
 
 }
-*/
+
