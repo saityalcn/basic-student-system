@@ -62,7 +62,6 @@ int main(void){
 	STUDENT *tailOfStudentsList;
 	CLASS *headOfClassesList;
 	
-    printf("Deneme");
 
 	headOfClassesList = NULL;
 	headOfStudentsList = NULL;
