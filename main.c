@@ -1,8 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#define DENE 20
-#define CHAR_SIZE 30
+#define CHAR_SIZE 50
 
 typedef struct{
 	short day;
@@ -20,11 +19,14 @@ typedef struct Student{
 	struct Student *prev;
 }STUDENT;
 
-typedef struct{
-	char IDOfClass[10];
-	char nameOfClass[CHAR_SIZE];
+typedef struct Class{
+	char ID[10];
+	char name[CHAR_SIZE];
+	int credit;
+	int capacity;
 	int *idsOfStudents;
 	int numOfStudents;
+	struct Class* next;
 }CLASS;
 
 typedef struct{
@@ -41,9 +43,10 @@ void getClassesFromDoc();
 void menu();
 void studentOperations();
 void classOperations();
-STUDENT* createStudent(FILE *fp);
+STUDENT* getStudentInformationFromFile(FILE *fp);
 void addStudent();
-CLASS* createClass();
+CLASS* getClassInformationFromFile(FILE *fp);
+STUDENT* createStudent();
 void selectClassOperations();
 void addStudentToClass();
 STUDENT* getStudentListOfClass();
@@ -51,6 +54,7 @@ CLASS* getClassesOfStudent();
 void writeToDocs();
 void appendToDocs();
 void printStudentList(STUDENT** head);
+void printClassesList(CLASS** head);
 
 
 
@@ -74,15 +78,18 @@ int main(void){
 	
 	// Dosyalardan verilerin çekilmesi ve değişkenlere kaydedilmesi işlemleri menu'den once yapılmalıdır.
 	getStudentsFromDoc(&headOfStudentsList);
+	printf("GETSTUDENT\n");
 	getClassesFromDoc(&headOfClassesList);
 	
-	menu();
+	menu(&headOfStudentsList, &headOfClassesList);
 	printStudentList(&headOfStudentsList);
+	printf("\n\n\n");
+	printClassesList(&headOfClassesList);
 	
 	return 0;
 }
 
-
+/*
 void createList(STUDENT** head, STUDENT* (*function)(STUDENT **head)){
 	
 	if(*head == NULL){
@@ -90,27 +97,38 @@ void createList(STUDENT** head, STUDENT* (*function)(STUDENT **head)){
 	}
 	
 }
+*/
+
+int countLineNumberOfDoc(char *name){
+	
+	FILE *fp;
+	char c;
+	int lineNumber;
+	
+	lineNumber = 0;
+	
+	fp = fopen(name,"r");
+	
+	for (c = getc(fp); c != EOF; c = getc(fp)){
+    	if (c == '\n') 
+        	lineNumber++;
+	}
+	
+	fclose(fp);
+	
+	return lineNumber;
+}
 
 
 void getStudentsFromDoc(STUDENT** head){
 	
 	int lineNumberOfDoc;
-	char c;
-	FILE *fpForCounting;
 	STUDENT *ptr;
 	FILE *fp;
 	char nameOfDoc[] = "ogrenciler.txt"; 
+
 	
-	fpForCounting = fopen(nameOfDoc, "r");
-	
-	lineNumberOfDoc = 0;
-	
-	for (c = getc(fpForCounting); c != EOF; c = getc(fpForCounting)){
-    	if (c == '\n') 
-        	lineNumberOfDoc++;
-	}
-	
-	fclose(fpForCounting);
+	lineNumberOfDoc = countLineNumberOfDoc(nameOfDoc);
 	
 	fp = fopen(nameOfDoc, "r");
 	
@@ -120,10 +138,9 @@ void getStudentsFromDoc(STUDENT** head){
 	
 	
 	while(lineNumberOfDoc > 0){
-		// head' sp'nin pointerını atadığın için daha sonra atama yapmasan bile onun değerini alıyor.
 		
 		if(*head == NULL){
-			*head = createStudent(fp);
+			*head = getStudentInformationFromFile(fp);
 		}
 		
 		else{
@@ -134,7 +151,7 @@ void getStudentsFromDoc(STUDENT** head){
 				ptr = ptr->next;
 			}
 			
-			ptr->next = createStudent(fp);
+			ptr->next = getStudentInformationFromFile(fp);
 		
 		}
 	
@@ -145,7 +162,7 @@ void getStudentsFromDoc(STUDENT** head){
 
 }
 
-STUDENT* createStudent(FILE *fp){
+STUDENT* getStudentInformationFromFile(FILE *fp){
 	int i,totalCredit,numOfClasses;
 	STUDENT* sp;
 	char n[CHAR_SIZE];
@@ -169,18 +186,70 @@ STUDENT* createStudent(FILE *fp){
 }
 
 void getClassesFromDoc(CLASS** head){
-	int credit;
-	char n[CHAR_SIZE];
-	char sn[CHAR_SIZE];
+	int lineNumberOfDoc;
 	FILE* fp;
+	CLASS* ptr;
+	char nameOfDoc[] = "dersler.txt"; 
+	
+	lineNumberOfDoc =  countLineNumberOfDoc(nameOfDoc);
+	
+	fp = fopen(nameOfDoc, "r");
+	
+	if(fp == NULL){
+		printf("HATA '%s' isimli dosya acilamadi", nameOfDoc);
+	}
+	
+	
+	while(lineNumberOfDoc > 0){
+		
+		if(*head == NULL){
+			*head = getClassInformationFromFile(fp);
+		}
+		
+		else{
+			
+			ptr = *head; 
+			
+			while(ptr->next != NULL){
+				ptr = ptr->next;
+			}
+			
+			ptr->next = getClassInformationFromFile(fp);
+		
+		}
+	
+		lineNumberOfDoc--;
+	}
+	
+	fclose(fp);
+	
+}
+
+CLASS* getClassInformationFromFile(FILE *fp){
+	
+	char i[10];
+	char n[CHAR_SIZE];
+	int cap, cre;
+	
 	CLASS* cp;
-	STUDENT* ptr;
-	char nameOfDoc[] = "deneme.txt"; 
+	
+	cp = (CLASS*)malloc(sizeof(CLASS));
+	
+	fscanf(fp,"%s , %s ,%d,%d\n",i,n,&cre,&cap);
+	
+	strcpy(cp->ID,i);
+	strcpy(cp->name,n);
+	cp->credit = cre;
+	cp->capacity = cap;
+	cp->next = NULL;
+	
+	return cp;
 	
 }
 
 
-void menu(){
+
+void menu(STUDENT** headOfStudentsList, CLASS** headOfClassesList){
 	int menuInput = 1;
 	
 	while(menuInput != 0){
@@ -193,10 +262,10 @@ void menu(){
 		printf("\n");
 		
 		if(menuInput == 1)
-			studentOperations();
+			studentOperations(headOfStudentsList);
 		
 		else if(menuInput == 2)
-			classOperations();
+			classOperations(headOfClassesList);
 			
 		else if(menuInput == 3)
 			selectClassOperations();
@@ -208,7 +277,7 @@ void menu(){
 		
 }
 
-void studentOperations(){
+void studentOperations(STUDENT** head){
 	int studentOperationsMenuInput = 1;
 	
 	while(studentOperationsMenuInput != 0){
@@ -217,13 +286,20 @@ void studentOperations(){
 		printf("Ogrencinin aldigi dersleri yazdirmak icin 3\n");
 		printf("Cikmak icin 0 giriniz\nSeciminiz: ");
 		scanf("%d", &studentOperationsMenuInput);
-		printf("\n");		
+		printf("\n");
+		if(studentOperationsMenuInput == 1)
+			addStudent(head);
+		
+		else if(studentOperationsMenuInput == 2)
+			//deleteStudent(head);
+		else if(studentOperationsMenuInput == 3)
+			//printClassesOfStudent();
 	}
 	
 }
 
 
-void classOperations(){
+void classOperations(CLASS** head){
 	int classOperationsMenuInput = 1;
 	
 	while(classOperationsMenuInput != 0){
@@ -269,35 +345,72 @@ void printStudentList(STUDENT **head){
 	}
 }
 
+void printClassesList(CLASS **head){
+	CLASS *ptr;
+	int i = 0;
+	
+	if(*head == NULL){
+		printf("Head NULL");
+		return;
+	}
 
-/*
+	
+	ptr = *head;
+	
+	while(ptr != NULL){
+		printf("%s\t%s\t%d\t%d\t\n", ptr->ID, ptr->name, ptr->credit, ptr->capacity);
+		ptr = ptr->next;
+	}
+}
+
+void addStudent(STUDENT** head){
+	
+	STUDENT* ptr;
+	
+	if(*head == NULL){
+		*head = createStudent();
+	}
+		
+	else{
+		ptr = *head; 
+			
+		while(ptr->next != NULL){
+			ptr = ptr->next;
+		}
+			
+		ptr->next = createStudent();
+		
+	}	
+	
+}
+
 STUDENT* createStudent(){
 	
-		
-	int i,totalCredit,numOfClasses;
+	int i;
 	char n[CHAR_SIZE];
 	char sn[CHAR_SIZE];
-	STUDENT *sp;
-	STUDENT *ptr;
+	STUDENT* sp;
 	
 	sp = (STUDENT*)malloc(sizeof(STUDENT));
 	
-	printf("Enter id of student: ");
+	printf("Eklemek istediginiz ogrencinin ogrenci numarasini giriniz: ");
 	scanf("%d", &i);
 	
-	printf("Enter name of student: ");
+	printf("Eklemek istediginiz ogrencinin adini giriniz: ");
 	scanf("%s", n);
 	
-	printf("Enter surname of student: ");
-	scanf("%d", sn);
-
-	sp->ID  = i;
-	strcpy(sp->name, n);
-	strcpy(sp->surname, sn);
-	sp->totalCredit = 0;
-	sp->numOfClasses = 0;
+	printf("Eklemek istediginiz ogrencinin soyadini giriniz: ");
+	scanf("%s", sn);
 	
-	return sp;	
+	sp->ID = i;
+	strcpy(sp->name, n);
+	strcpy(sp->surname,sn);
+	
+	sp->next = NULL;
+	sp->prev = NULL;
+	sp->numOfClasses = 0;
+	sp->totalCredit = 0;
+	
+	return sp;
 
 }
-*/
