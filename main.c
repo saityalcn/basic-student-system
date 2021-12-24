@@ -17,6 +17,7 @@ typedef struct Student{
 	int totalCredit;
 	struct Student *next;
 	struct Student *prev;
+	char *classesOfStudent[10];
 }STUDENT;
 
 typedef struct Class{
@@ -40,20 +41,32 @@ typedef struct{
 
 void getStudentsFromDoc();
 void getClassesFromDoc();
+
 void menu();
 void studentOperations();
 void classOperations();
+
 STUDENT* getStudentInformationFromFile(FILE *fp);
 void addStudent(STUDENT** head, STUDENT** tail);
 CLASS* getClassInformationFromFile(FILE *fp);
+
 void sortList();
+
+void getClassesInformations(CLASS** headOfClassesList);
+void getStudentsInformations(CLASS** headOfClassesList);
+
 STUDENT* createStudent();
+STUDENT* findStudent(int id, STUDENT** head);
+void deleteStudent(STUDENT** head, STUDENT** tail);
+void printClassesOfStudent(STUDENT** head);
+
 void selectClassOperations();
 void addStudentToClass();
 STUDENT* getStudentListOfClass();
-CLASS* getClassesOfStudent();
+
 void writeToDocs();
 void appendToDocs();
+
 void printStudentList(STUDENT** head);
 void printStudentListV2(STUDENT** tail);
 void printClassesList(CLASS** head);
@@ -81,8 +94,10 @@ int main(void){
 	// Dosyalardan verilerin çekilmesi ve değişkenlere kaydedilmesi işlemleri menu'den once yapılmalıdır.
 	getStudentsFromDoc(&headOfStudentsList, &tailOfStudentsList);
 	getClassesFromDoc(&headOfClassesList);
-	sortList(&headOfStudentList);
-	sortList(&headOfClassesList);
+
+	getClassesInformations(&headOfClassesList);
+	//sgetStudentsInformations(&headOfClassesList);
+	
 	
 	menu(&headOfStudentsList,&tailOfStudentsList, &headOfClassesList);
 	printStudentList(&headOfStudentsList);
@@ -93,15 +108,7 @@ int main(void){
 	return 0;
 }
 
-/*
-void createList(STUDENT** head, STUDENT* (*function)(STUDENT **head)){
-	
-	if(*head == NULL){
-		
-	}
-	
-}
-*/
+
 
 int countLineNumberOfDoc(char *name){
 	
@@ -250,7 +257,10 @@ CLASS* getClassInformationFromFile(FILE *fp){
 	strcpy(cp->name,n);
 	cp->credit = cre;
 	cp->capacity = cap;
+	cp->idsOfStudents = NULL;
+	cp->numOfStudents = 0;
 	cp->next = NULL;
+	
 	
 	return cp;
 	
@@ -258,7 +268,70 @@ CLASS* getClassInformationFromFile(FILE *fp){
 
 
 
+void sortStudentList(STUDENT** head){
+	
+	STUDENT *ptr1, *ptr2, *tmpForNext, *tmpForPrev;
 
+	for(ptr1 = *head; ptr1->next != NULL; ptr1 = ptr1->next){
+		for(ptr2 = *head; ptr2->next->next != NULL; ptr2 = ptr2->next){
+			if(ptr2->ID > ptr2->next->ID){
+				
+				tmpForNext = ptr2->prev->next;
+				ptr2->prev->next = ptr2->next;
+				ptr2->next = ptr2->next->next;
+				
+				tmpForPrev = ptr2->prev;
+				ptr2->prev = ptr2;
+				
+		
+			}	
+		}
+	}	
+	
+}
+
+
+void getClassesInformations(CLASS** headOfClassesList){
+	
+	int id, numOfLines,i;
+	char IDOfClass[10],date[CHAR_SIZE],state[CHAR_SIZE];
+	int IDOfStudent;
+	CLASS* ptr;
+	FILE *fp;
+	char nameOfFile[] = "OgrenciDersKayit.txt";
+	
+	fp = fopen(nameOfFile, "r");
+	
+	numOfLines = countLineNumberOfDoc(nameOfFile);
+	
+	ptr = *headOfClassesList;
+	i = 0;
+
+	while(ptr != NULL){
+		(ptr->idsOfStudents) = (int*)malloc( sizeof(int) );
+		while(numOfLines > 0){
+			fscanf(fp,"%d,%s ,%d,%s ,%s", &id,IDOfClass,&IDOfStudent,date,state);
+			if(strcmp(IDOfClass,ptr->ID) == 0){
+				(ptr->numOfStudents)++;
+				(ptr->idsOfStudents) = (int*)realloc((ptr->idsOfStudents),(ptr->numOfStudents)*sizeof(int));
+				*((ptr->idsOfStudents)+i) = IDOfStudent;
+				i++;
+			}
+			numOfLines--;
+		}
+		ptr = ptr->next;
+	}
+	
+	ptr = *headOfClassesList;
+	
+	while(ptr!=NULL){
+		for(i=0; i<(ptr->numOfStudents); i++){
+			printf("%d\n",*((ptr->idsOfStudents)+i));
+		}
+		ptr = ptr->next;
+	}
+	
+}
 
 
 void menu(STUDENT** headOfStudentsList,STUDENT** tailOfStudentList, CLASS** headOfClassesList){
@@ -303,9 +376,9 @@ void studentOperations(STUDENT** head, STUDENT** tail){
 			addStudent(head,tail);
 		
 		else if(studentOperationsMenuInput == 2)
-			//deleteStudent(head,tail);
+			deleteStudent(head,tail);
 		else if(studentOperationsMenuInput == 3)
-			//printClassesOfStudent();	*/
+			printClassesOfStudent(head);
 	}
 	
 }
@@ -442,3 +515,65 @@ STUDENT* createStudent(){
 	return sp;
 
 }
+
+STUDENT* findStudent(int id, STUDENT **head){
+	STUDENT* ptr;
+	ptr = *head;
+	
+	while(ptr->ID != id && ptr != NULL)
+		ptr = ptr->next;
+	
+	return ptr;
+}
+
+
+void deleteStudent(STUDENT** head, STUDENT** tail){
+// liste sirali oldugu icin degistirilebilir.	
+	int id;
+	STUDENT *ptr;
+	
+	printf("Silmek istediginiz ogrencinin ogrenci numarasini giriniz: ");
+	scanf("%d", &id);
+	
+	if((*head)->ID == id){
+		(*head)->next->prev = (*head)->prev;
+		(*head) = (*head)->next;
+		printf("%d numarali ogrenciyi silme islemi basariliiii.\n", id);
+	}
+	
+	else if((*tail)->ID == id){
+		(*tail)->prev->next = (*tail)->next;
+		(*tail) = (*tail)->prev;
+		printf("%d numarali ogrenciyi silme islemi basariliiii.\n", id);
+	}
+	
+	else{
+		ptr = findStudent(id,head);
+		if(ptr->ID == id){
+			ptr->prev->next = ptr->next;
+			ptr->next->prev = ptr->prev;
+			printf("%d numarali ogrenciyi silme islemi basariliiii.\n", id);
+			return;
+		}
+		
+		else{
+			printf("Silinmek istenen ogrenci listede bulunmadi.\n");
+			return;
+		}
+	}
+	
+}
+
+void printClassesOfStudent(STUDENT** head){
+	int id;
+	STUDENT* ptr;
+	
+	printf("Derslerini listelemek istediginiz ogrencinin ogrenci numarasini giriniz: ");
+	scanf("%d", &id);
+	
+	ptr = findStudent(id, head);
+	
+	printf("%s", ptr->classesOfStudent[0]);
+	
+}
+
