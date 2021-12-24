@@ -46,6 +46,7 @@ void classOperations();
 STUDENT* getStudentInformationFromFile(FILE *fp);
 void addStudent(STUDENT** head, STUDENT** tail);
 CLASS* getClassInformationFromFile(FILE *fp);
+void sortList();
 STUDENT* createStudent();
 void selectClassOperations();
 void addStudentToClass();
@@ -80,6 +81,8 @@ int main(void){
 	// Dosyalardan verilerin çekilmesi ve değişkenlere kaydedilmesi işlemleri menu'den once yapılmalıdır.
 	getStudentsFromDoc(&headOfStudentsList, &tailOfStudentsList);
 	getClassesFromDoc(&headOfClassesList);
+	sortList(&headOfStudentList);
+	sortList(&headOfClassesList);
 	
 	menu(&headOfStudentsList,&tailOfStudentsList, &headOfClassesList);
 	printStudentList(&headOfStudentsList);
@@ -255,6 +258,9 @@ CLASS* getClassInformationFromFile(FILE *fp){
 
 
 
+
+
+
 void menu(STUDENT** headOfStudentsList,STUDENT** tailOfStudentList, CLASS** headOfClassesList){
 	int menuInput = 1;
 	
@@ -295,9 +301,9 @@ void studentOperations(STUDENT** head, STUDENT** tail){
 		printf("\n");
 		if(studentOperationsMenuInput == 1)
 			addStudent(head,tail);
-		/*
+		
 		else if(studentOperationsMenuInput == 2)
-			//deleteStudent(head);
+			//deleteStudent(head,tail);
 		else if(studentOperationsMenuInput == 3)
 			//printClassesOfStudent();	*/
 	}
@@ -390,24 +396,15 @@ void printClassesList(CLASS **head){
 }
 
 void addStudent(STUDENT** head,STUDENT **tail){
-	
-	// tail'den gel head'den değil.
-	
+		
 	STUDENT* ptr;
-	
-	printf("addStudent()\n");
 	
 	if(*head == NULL){
 		*head = createStudent();
 	}
 		
 	else{
-		ptr = *head;
-					
-		while(ptr->next != NULL){
-			ptr = ptr->next;
-		}
-			
+		ptr = *tail;
 		ptr->next = createStudent();
 		ptr->next->prev = ptr;
 		*tail = ptr->next;
@@ -445,4 +442,3 @@ STUDENT* createStudent(){
 	return sp;
 
 }
-s
