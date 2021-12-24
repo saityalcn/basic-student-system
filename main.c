@@ -44,7 +44,7 @@ void menu();
 void studentOperations();
 void classOperations();
 STUDENT* getStudentInformationFromFile(FILE *fp);
-void addStudent();
+void addStudent(STUDENT** head, STUDENT** tail);
 CLASS* getClassInformationFromFile(FILE *fp);
 STUDENT* createStudent();
 void selectClassOperations();
@@ -54,6 +54,7 @@ CLASS* getClassesOfStudent();
 void writeToDocs();
 void appendToDocs();
 void printStudentList(STUDENT** head);
+void printStudentListV2(STUDENT** tail);
 void printClassesList(CLASS** head);
 
 
@@ -77,12 +78,12 @@ int main(void){
 	
 	
 	// Dosyalardan verilerin çekilmesi ve değişkenlere kaydedilmesi işlemleri menu'den once yapılmalıdır.
-	getStudentsFromDoc(&headOfStudentsList);
-	printf("GETSTUDENT\n");
+	getStudentsFromDoc(&headOfStudentsList, &tailOfStudentsList);
 	getClassesFromDoc(&headOfClassesList);
 	
-	menu(&headOfStudentsList, &headOfClassesList);
+	menu(&headOfStudentsList,&tailOfStudentsList, &headOfClassesList);
 	printStudentList(&headOfStudentsList);
+	printStudentListV2(&tailOfStudentsList);
 	printf("\n\n\n");
 	printClassesList(&headOfClassesList);
 	
@@ -120,7 +121,7 @@ int countLineNumberOfDoc(char *name){
 }
 
 
-void getStudentsFromDoc(STUDENT** head){
+void getStudentsFromDoc(STUDENT** head, STUDENT** tail){
 	
 	int lineNumberOfDoc;
 	STUDENT *ptr;
@@ -141,6 +142,7 @@ void getStudentsFromDoc(STUDENT** head){
 		
 		if(*head == NULL){
 			*head = getStudentInformationFromFile(fp);
+			(*head)->prev = NULL;
 		}
 		
 		else{
@@ -152,8 +154,11 @@ void getStudentsFromDoc(STUDENT** head){
 			}
 			
 			ptr->next = getStudentInformationFromFile(fp);
+			ptr->next->prev = ptr;
 		
 		}
+		
+		*tail = ptr->next;
 	
 		lineNumberOfDoc--;
 	}
@@ -179,6 +184,7 @@ STUDENT* getStudentInformationFromFile(FILE *fp){
 	sp->numOfClasses = numOfClasses;
 	
 	sp->next = NULL;
+	sp->prev = NULL;
 	
 	
 	return sp;
@@ -249,7 +255,7 @@ CLASS* getClassInformationFromFile(FILE *fp){
 
 
 
-void menu(STUDENT** headOfStudentsList, CLASS** headOfClassesList){
+void menu(STUDENT** headOfStudentsList,STUDENT** tailOfStudentList, CLASS** headOfClassesList){
 	int menuInput = 1;
 	
 	while(menuInput != 0){
@@ -262,7 +268,7 @@ void menu(STUDENT** headOfStudentsList, CLASS** headOfClassesList){
 		printf("\n");
 		
 		if(menuInput == 1)
-			studentOperations(headOfStudentsList);
+			studentOperations(headOfStudentsList,tailOfStudentList);
 		
 		else if(menuInput == 2)
 			classOperations(headOfClassesList);
@@ -277,7 +283,7 @@ void menu(STUDENT** headOfStudentsList, CLASS** headOfClassesList){
 		
 }
 
-void studentOperations(STUDENT** head){
+void studentOperations(STUDENT** head, STUDENT** tail){
 	int studentOperationsMenuInput = 1;
 	
 	while(studentOperationsMenuInput != 0){
@@ -288,12 +294,12 @@ void studentOperations(STUDENT** head){
 		scanf("%d", &studentOperationsMenuInput);
 		printf("\n");
 		if(studentOperationsMenuInput == 1)
-			addStudent(head);
-		
+			addStudent(head,tail);
+		/*
 		else if(studentOperationsMenuInput == 2)
 			//deleteStudent(head);
 		else if(studentOperationsMenuInput == 3)
-			//printClassesOfStudent();
+			//printClassesOfStudent();	*/
 	}
 	
 }
@@ -345,6 +351,26 @@ void printStudentList(STUDENT **head){
 	}
 }
 
+void printStudentListV2(STUDENT **tail){
+	STUDENT *ptr;
+	int i = 0;
+
+	if((*tail) == NULL){
+		printf("Tail NULL");
+		return;
+	}
+	
+	printf("ID\t\tName\tSurname\tNum Of Classes\tTotal Credit\n");
+	
+	ptr = (*tail);
+	
+	while(ptr != NULL){
+		printf("%d\t%s\t%s\t%d\t\t%d\n", ptr->ID, ptr->name, ptr->surname, ptr->numOfClasses, ptr->totalCredit);
+		ptr = ptr->prev;
+	}
+}
+
+
 void printClassesList(CLASS **head){
 	CLASS *ptr;
 	int i = 0;
@@ -363,23 +389,28 @@ void printClassesList(CLASS **head){
 	}
 }
 
-void addStudent(STUDENT** head){
+void addStudent(STUDENT** head,STUDENT **tail){
+	
+	// tail'den gel head'den değil.
 	
 	STUDENT* ptr;
+	
+	printf("addStudent()\n");
 	
 	if(*head == NULL){
 		*head = createStudent();
 	}
 		
 	else{
-		ptr = *head; 
-			
+		ptr = *head;
+					
 		while(ptr->next != NULL){
 			ptr = ptr->next;
 		}
 			
 		ptr->next = createStudent();
-		
+		ptr->next->prev = ptr;
+		*tail = ptr->next;
 	}	
 	
 }
@@ -414,3 +445,4 @@ STUDENT* createStudent(){
 	return sp;
 
 }
+s
