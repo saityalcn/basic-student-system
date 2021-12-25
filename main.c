@@ -290,6 +290,26 @@ void sortStudentList(STUDENT** head){
 }
 
 
+
+void sortList(int* list, int n){
+	
+	int i;
+	int j;
+	int tmp;
+	
+	for(i=0; i<n; i++){
+		for(j=0; j<n-1; j++){
+			if(list[j] > list[j+1]){
+				tmp = list[j];
+				list[j] = list[j+1];
+				list[j+1] = tmp;
+			}
+		}
+	}
+	
+}
+
+
 void getClassesInformations(CLASS** headOfClassesList){
 	
 	int id, numOfLines,i,lineNumber;
@@ -318,11 +338,12 @@ void getClassesInformations(CLASS** headOfClassesList){
 			}
 			lineNumber++;
 		}
+		sortList(ptr->idsOfStudents,ptr->numOfStudents);
 		i = 0;
 		ptr = ptr->next;
 		rewind(fp);
 	}
-	
+
 	fclose(fp);
 	
 	ptr = *headOfClassesList;
@@ -718,12 +739,17 @@ void getStudentListOfClass(CLASS** headOfClassList, STUDENT **headOfStudentList,
 	CLASS* clsPtr;
 	int *idsOfStudents;
 	char id[10];
+	char nameOfDoc[30];
+	FILE* fp;
 	
 	printf("Listesini yazdirmak istediginiz dersin kodunu giriniz: ");
 	scanf("%s", id);
 	
+	strcpy(nameOfDoc,id);
+	
+	strcat(nameOfDoc,".txt");
+	
 	clsPtr = *headOfClassList;
-	stdPtr = *headOfStudentList;
 	
 	while(clsPtr != NULL && strcmp(id,clsPtr->ID) != 0){
 		clsPtr = clsPtr->next;
@@ -735,14 +761,29 @@ void getStudentListOfClass(CLASS** headOfClassList, STUDENT **headOfStudentList,
 		for(i=0; i<clsPtr->numOfStudents; i++){
 			idsOfStudents[i] = *((clsPtr->idsOfStudents)+i);
 			printf("%d\t", *((clsPtr->idsOfStudents)+i));
+			printf("\n");
 		}
-	
-		if(idsOfStudents[i]-(*headOfStudentList)->ID > (*tailOfStudentList)->ID-idsOfStudents[i]){
-			stdPtr = *headOfStudentList;
-			// burada yapilacak islem ogrenciye idsi sayesinde ulaşıp ogrencinin bilgilerini dosyaya kaydetmek
+
+		
+		fp = fopen(nameOfDoc,"w");
+		
+		if(idsOfStudents[0]-(*headOfStudentList)->ID > (*tailOfStudentList)->ID-idsOfStudents[clsPtr->numOfStudents]){
+			stdPtr = *headOfStudentList;	
+			for(i=0; i<clsPtr->numOfStudents; i++){
+				stdPtr = findStudent(idsOfStudents[i], headOfStudentList);
+				fprintf(fp,"%d,%d,%s,%s\n",i+1,stdPtr->ID,stdPtr->name, stdPtr->surname);
+				printf("%s\n", stdPtr->name);
+			}
+
 		}
 		else{
-			stdPtr = *tailOfStudentList;
-		}	
+			stdPtr = *headOfStudentList;	
+			for(i=0; i<clsPtr->numOfStudents; i++){
+				stdPtr = findStudent(idsOfStudents[i], headOfStudentList);
+				fprintf(fp,"%d,%d,%s,%s\n",i+1,stdPtr->ID,stdPtr->name, stdPtr->surname);
+				printf("%s\n", stdPtr->name);
+			}
+		}
 	}
 }
+
