@@ -293,43 +293,51 @@ void sortStudentList(STUDENT** head){
 
 void getClassesInformations(CLASS** headOfClassesList){
 	
-	int id, numOfLines,i;
+	int id, numOfLines,i,lineNumber;
 	char IDOfClass[10],date[CHAR_SIZE],state[CHAR_SIZE];
 	int IDOfStudent;
 	CLASS* ptr;
 	FILE *fp;
 	char nameOfFile[] = "OgrenciDersKayit.txt";
 	
-	fp = fopen(nameOfFile, "r");
-	
 	numOfLines = countLineNumberOfDoc(nameOfFile);
-	
+	lineNumber = 0;
 	ptr = *headOfClassesList;
 	i = 0;
+	fp = fopen(nameOfFile, "r");
+	(ptr->idsOfStudents) = (int*)malloc( (ptr->numOfStudents)*sizeof(int) );
 
 	while(ptr != NULL){
-		(ptr->idsOfStudents) = (int*)malloc( sizeof(int) );
-		while(numOfLines > 0){
-			fscanf(fp,"%d,%s ,%d,%s ,%s", &id,IDOfClass,&IDOfStudent,date,state);
-			if(strcmp(IDOfClass,ptr->ID) == 0){
+		lineNumber = 0;
+		while(lineNumber < numOfLines){
+			fscanf(fp,"%d,%s ,%d,%s ,%s\n", &id,IDOfClass,&IDOfStudent,date,state);
+			if(strcmp(state,"kayitli") == 0 && strcmp(IDOfClass,ptr->ID) == 0){
 				(ptr->numOfStudents)++;
 				(ptr->idsOfStudents) = (int*)realloc((ptr->idsOfStudents),(ptr->numOfStudents)*sizeof(int));
 				*((ptr->idsOfStudents)+i) = IDOfStudent;
 				i++;
 			}
-			numOfLines--;
+			printf("\n");
+			lineNumber++;
 		}
+		i = 0;
 		ptr = ptr->next;
+		rewind(fp);
 	}
+	
+	fclose(fp);
 	
 	ptr = *headOfClassesList;
 	
 	while(ptr!=NULL){
+		printf("%s\n", ptr->ID);
 		for(i=0; i<(ptr->numOfStudents); i++){
 			printf("%d\n",*((ptr->idsOfStudents)+i));
 		}
+		printf("\n\n");
 		ptr = ptr->next;
 	}
+	
 	
 }
 
