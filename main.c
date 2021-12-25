@@ -58,12 +58,12 @@ STUDENT* findStudent(int id, STUDENT** head);
 void deleteStudent(STUDENT** head, STUDENT** tail);
 void printClassesOfStudent(CLASS** head);
 
-void classOperations(CLASS **head);
+void classOperations(CLASS **headOfClassList, STUDENT** headOfStudentList, STUDENT** tailOfStudentList);
 void addNewClassToList(CLASS **head);
 CLASS* createClass();
 void deleteClassFromList(CLASS **head);
 void addStudentToClass();
-STUDENT* getStudentListOfClass(CLASS **head);
+void getStudentListOfClass(CLASS **headOfClassList, STUDENT **headOfStudentList,STUDENT** tailOfStudentList);
 
 void selectClassOperations();
 
@@ -354,7 +354,7 @@ void menu(STUDENT** headOfStudentsList,STUDENT** tailOfStudentList, CLASS** head
 			studentOperations(headOfStudentsList,tailOfStudentList,headOfClassesList);
 		
 		else if(menuInput == 2)
-			classOperations(headOfClassesList);
+			classOperations(headOfClassesList,headOfStudentsList,tailOfStudentList);
 			
 		else if(menuInput == 3)
 			selectClassOperations();
@@ -388,7 +388,7 @@ void studentOperations(STUDENT** head, STUDENT** tail, CLASS** headOfClassList){
 }
 
 
-void classOperations(CLASS** head){
+void classOperations(CLASS** headOfClassList, STUDENT** headOfStudentList,STUDENT** tailOfStudentList){
 	int classOperationsMenuInput = 1;
 	
 	while(classOperationsMenuInput != 0){
@@ -400,12 +400,12 @@ void classOperations(CLASS** head){
 		printf("\n");
 		
 		if(classOperationsMenuInput == 1){
-			addNewClassToList(head);
+			addNewClassToList(headOfClassList);
 		}
 		else if(classOperationsMenuInput == 2)
-			deleteClassFromList(head);
+			deleteClassFromList(headOfClassList);
 		else if(classOperationsMenuInput == 3){
-			getStudentListOfClass(head);
+			getStudentListOfClass(headOfClassList,headOfStudentList,tailOfStudentList);
 		}
 	}
 	
@@ -713,9 +713,8 @@ void deleteClassFromList(CLASS** head){
 }
 
 void getStudentListOfClass(CLASS** headOfClassList, STUDENT **headOfStudentList,STUDENT** tailOfStudentList){
-	
-	STUDENT* stdHeadPtr;
-	STUDENT* stdTailPtr;
+	int i;
+	STUDENT* stdPtr;
 	CLASS* clsPtr;
 	int *idsOfStudents;
 	char id[10];
@@ -726,29 +725,24 @@ void getStudentListOfClass(CLASS** headOfClassList, STUDENT **headOfStudentList,
 	clsPtr = *headOfClassList;
 	stdPtr = *headOfStudentList;
 	
-	while(clsPtr != NULL && strcmp(id,clsPtr->Id) != 0){
+	while(clsPtr != NULL && strcmp(id,clsPtr->ID) != 0){
 		clsPtr = clsPtr->next;
 	}
 	
-	if(strcmp(id,clsPtr->Id) == 0){
+	if(strcmp(id,clsPtr->ID) == 0){
 		idsOfStudents = (int*)malloc(clsPtr->numOfStudents*sizeof(int));
 		
 		for(i=0; i<clsPtr->numOfStudents; i++){
-			idsOfStudents[i] = *((clsPtr->idsOfStudents)+i);	
+			idsOfStudents[i] = *((clsPtr->idsOfStudents)+i);
+			printf("%d\t", *((clsPtr->idsOfStudents)+i));
 		}
 	
-		if(idsOfStudents[i]-headOfStudentList->ID > tailOfStudentList-idsOfStudents[i]){
-			// tail'den gel;
+		if(idsOfStudents[i]-(*headOfStudentList)->ID > (*tailOfStudentList)->ID-idsOfStudents[i]){
+			stdPtr = *headOfStudentList;
+			// burada yapilacak islem ogrenciye idsi sayesinde ulaşıp ogrencinin bilgilerini dosyaya kaydetmek
 		}
 		else{
-			//head'den gel
-		}
-		
-		
-		
+			stdPtr = *tailOfStudentList;
+		}	
 	}
-	
-	
-	
 }
-
