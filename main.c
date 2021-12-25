@@ -65,8 +65,9 @@ void deleteClassFromList(CLASS **head);
 void addStudentToClass();
 void getStudentListOfClass(CLASS **headOfClassList, STUDENT **headOfStudentList,STUDENT** tailOfStudentList);
 
-void selectClassOperations();
-
+void selectClassOperations(CLASS **headOfClassList, STUDENT** headOfStudentList, STUDENT** tailOfStudentList);
+void selectClass(CLASS** headOfClassList, STUDENT** headOfStudentList, STUDENT** tailOfStudentList, int studentId);
+void removeClass(CLASS** headOfClassList, STUDENT** headOfStudentList, STUDENT** tailOfStudentList, int studentId);
 
 void writeToDocs();
 void appendToDocs();
@@ -266,7 +267,7 @@ CLASS* getClassInformationFromFile(FILE *fp){
 }
 
 
-
+// STUDENT LIST'TE HATA VAR
 void sortStudentList(STUDENT** head){
 	
 	STUDENT *ptr1, *ptr2, *tmpForNext, *tmpForPrev;
@@ -378,7 +379,7 @@ void menu(STUDENT** headOfStudentsList,STUDENT** tailOfStudentList, CLASS** head
 			classOperations(headOfClassesList,headOfStudentsList,tailOfStudentList);
 			
 		else if(menuInput == 3)
-			selectClassOperations();
+			selectClassOperations(headOfClassesList,headOfStudentsList,tailOfStudentList);
 			
 		else if(menuInput != 0){
 			printf("Hatali secim yaptiniz tekrar deneyiniz.\n");
@@ -402,6 +403,7 @@ void studentOperations(STUDENT** head, STUDENT** tail, CLASS** headOfClassList){
 		
 		else if(studentOperationsMenuInput == 2)
 			deleteStudent(head,tail);
+			
 		else if(studentOperationsMenuInput == 3)
 			printClassesOfStudent(headOfClassList);			// Calismiyor
 	}
@@ -420,11 +422,12 @@ void classOperations(CLASS** headOfClassList, STUDENT** headOfStudentList,STUDEN
 		scanf("%d", &classOperationsMenuInput);
 		printf("\n");
 		
-		if(classOperationsMenuInput == 1){
+		if(classOperationsMenuInput == 1)
 			addNewClassToList(headOfClassList);
-		}
+		
 		else if(classOperationsMenuInput == 2)
 			deleteClassFromList(headOfClassList);
+			
 		else if(classOperationsMenuInput == 3){
 			getStudentListOfClass(headOfClassList,headOfStudentList,tailOfStudentList);
 		}
@@ -432,15 +435,31 @@ void classOperations(CLASS** headOfClassList, STUDENT** headOfStudentList,STUDEN
 	
 }
 
-void selectClassOperations(){
+void selectClassOperations(CLASS** headOfClassList, STUDENT** headOfStudentList, STUDENT** tailOfStudentList){
 	int selectClassOperationsMenuInput = 1;
+	int studentId;
+		
+	printf("Islem yapmak istediginiz ogrencinin numarasini giriniz: ");
+	scanf("%d", &studentId);
 	
 	while(selectClassOperationsMenuInput != 0){
 		printf("Ders secmek icin 1,\n");
 		printf("Secili bir dersi silmek icin 2,\n");
+		printf("Islem yapilan ogrenciyi degistirmek icin 3,\n");
 		printf("Cikmak icin 0 giriniz\nSeciminiz: ");
 		scanf("%d", &selectClassOperationsMenuInput);
 		printf("\n");
+		
+		if(selectClassOperationsMenuInput == 1)
+			selectClass(headOfClassList,headOfStudentList,tailOfStudentList,studentId);
+		
+		else if(selectClassOperationsMenuInput == 2)
+			removeClass(headOfClassList, headOfStudentList, tailOfStudentList,studentId);
+			
+		else if(selectClassOperationsMenuInput == 3){
+			printf("Islem yapmak istediginiz ogrencinin numarasini giriniz: ");
+			scanf("%d", &studentId);
+		}
 	}
 }
 
@@ -746,7 +765,6 @@ void getStudentListOfClass(CLASS** headOfClassList, STUDENT **headOfStudentList,
 	scanf("%s", id);
 	
 	strcpy(nameOfDoc,id);
-	
 	strcat(nameOfDoc,".txt");
 	
 	clsPtr = *headOfClassList;
@@ -767,7 +785,7 @@ void getStudentListOfClass(CLASS** headOfClassList, STUDENT **headOfStudentList,
 		
 		fp = fopen(nameOfDoc,"w");
 		
-		if(idsOfStudents[0]-(*headOfStudentList)->ID > (*tailOfStudentList)->ID-idsOfStudents[clsPtr->numOfStudents]){
+		if(idsOfStudents[0]-(*headOfStudentList)->ID < (*tailOfStudentList)->ID-idsOfStudents[clsPtr->numOfStudents]){
 			stdPtr = *headOfStudentList;	
 			for(i=0; i<clsPtr->numOfStudents; i++){
 				stdPtr = findStudent(idsOfStudents[i], headOfStudentList);
@@ -777,13 +795,31 @@ void getStudentListOfClass(CLASS** headOfClassList, STUDENT **headOfStudentList,
 
 		}
 		else{
-			stdPtr = *headOfStudentList;	
+			stdPtr = *tailOfStudentList;	
 			for(i=0; i<clsPtr->numOfStudents; i++){
-				stdPtr = findStudent(idsOfStudents[i], headOfStudentList);
+				stdPtr = findStudent(idsOfStudents[i], tailOfStudentList);
 				fprintf(fp,"%d,%d,%s,%s\n",i+1,stdPtr->ID,stdPtr->name, stdPtr->surname);
 				printf("%s\n", stdPtr->name);
 			}
 		}
 	}
+}
+
+void selectClass(CLASS** headOfClassList, STUDENT** headOfStudentList, STUDENT** tailOfStudentList, int studentId){
+	
+	int idOfStudent;
+	char idOfClass[10];
+	CLASS *ptrCls;
+	STUDENT* ptrStd;
+	
+	printf("Eklemek istenilen dersin kodunu giriniz: ");
+	scanf("%s", idOfClass);
+	
+	
+	
+}
+
+void removeClass(CLASS** headOfClassList, STUDENT** headOfStudentList, STUDENT** tailOfStudentList,int studentId){
+
 }
 
