@@ -41,7 +41,7 @@ typedef struct{
 void getStudentsFromDoc();
 void getClassesFromDoc();
 
-void menu();
+void menu(STUDENT** headOfStudentsList, STUDENT** tailOfStudentList, CLASS** headOfClassesList, int totalNumOfCredit, int totalNumOfClass);
 void studentOperations();
 
 
@@ -65,12 +65,12 @@ void deleteClassFromList(CLASS **head);
 void addStudentToClass();
 void getStudentListOfClass(CLASS **headOfClassList, STUDENT **headOfStudentList,STUDENT** tailOfStudentList);
 
-void selectClassOperations(CLASS **headOfClassList, STUDENT** headOfStudentList, STUDENT** tailOfStudentList);
-void selectClass(CLASS** headOfClassList, STUDENT** headOfStudentList, STUDENT** tailOfStudentList, int studentId);
-void removeClass(CLASS** headOfClassList, STUDENT** headOfStudentList, STUDENT** tailOfStudentList, int studentId);
+void selectClassOperations(CLASS **headOfClassList, STUDENT** headOfStudentList, STUDENT** tailOfStudentList, int creditLimit, int numOfClassLimit);
+void selectClass(CLASS** headOfClassList, STUDENT** headOfStudentList, STUDENT** tailOfStudentList, int studentId,int creditLimit, int numOfClassLimit);
+void removeStudentFromClass(CLASS** headOfClassList, STUDENT** headOfStudentList, STUDENT** tailOfStudentList, int studentId);
 
-void writeToDocs();
-void appendToDocs();
+void updateStudentsFile(STUDENT** head);
+void updateClassesFile(CLASS** head);
 
 void printStudentList(STUDENT** head);
 void printStudentListV2(STUDENT** tail);
@@ -96,15 +96,20 @@ int main(void){
 	
 	// Dosyalardan verilerin çekilmesi ve değişkenlere kaydedilmesi işlemleri menu'den once yapılmalıdır.
 	getStudentsFromDoc(&headOfStudentsList, &tailOfStudentsList);
+	printf("OGRENCILER ALİNDİ\n");
 	getClassesFromDoc(&headOfClassesList);
+		printf("OGRENCILER ALİNDİ\n");
 
 	getClassesInformations(&headOfClassesList);
 	
-	menu(&headOfStudentsList,&tailOfStudentsList, &headOfClassesList);
+	menu(&headOfStudentsList,&tailOfStudentsList, &headOfClassesList, totalNumOfCredit,totalNumOfClass);
 	printStudentList(&headOfStudentsList);
 	printStudentListV2(&tailOfStudentsList);
 	printf("\n\n\n");
 	printClassesList(&headOfClassesList);
+	
+	updateStudentsFile(&headOfStudentsList);
+	//updateClassesFile(&headOfClassesList);
 	
 	return 0;
 }
@@ -360,7 +365,7 @@ void getClassesInformations(CLASS** headOfClassesList){
 	
 }
 
-void menu(STUDENT** headOfStudentsList,STUDENT** tailOfStudentList, CLASS** headOfClassesList){
+void menu(STUDENT** headOfStudentsList,STUDENT** tailOfStudentList, CLASS** headOfClassesList, int totalNumOfCredit, int totalNumOfClass){
 	int menuInput = 1;
 	
 	while(menuInput != 0){
@@ -379,7 +384,7 @@ void menu(STUDENT** headOfStudentsList,STUDENT** tailOfStudentList, CLASS** head
 			classOperations(headOfClassesList,headOfStudentsList,tailOfStudentList);
 			
 		else if(menuInput == 3)
-			selectClassOperations(headOfClassesList,headOfStudentsList,tailOfStudentList);
+			selectClassOperations(headOfClassesList,headOfStudentsList,tailOfStudentList,totalNumOfCredit, totalNumOfClass);
 			
 		else if(menuInput != 0){
 			printf("Hatali secim yaptiniz tekrar deneyiniz.\n");
@@ -435,7 +440,7 @@ void classOperations(CLASS** headOfClassList, STUDENT** headOfStudentList,STUDEN
 	
 }
 
-void selectClassOperations(CLASS** headOfClassList, STUDENT** headOfStudentList, STUDENT** tailOfStudentList){
+void selectClassOperations(CLASS** headOfClassList, STUDENT** headOfStudentList, STUDENT** tailOfStudentList, int creditLimit, int numOfClassLimit){
 	int selectClassOperationsMenuInput = 1;
 	int studentId;
 		
@@ -451,10 +456,10 @@ void selectClassOperations(CLASS** headOfClassList, STUDENT** headOfStudentList,
 		printf("\n");
 		
 		if(selectClassOperationsMenuInput == 1)
-			selectClass(headOfClassList,headOfStudentList,tailOfStudentList,studentId);
+			selectClass(headOfClassList,headOfStudentList,tailOfStudentList,studentId,creditLimit,numOfClassLimit);
 		
 		else if(selectClassOperationsMenuInput == 2)
-			removeClass(headOfClassList, headOfStudentList, tailOfStudentList,studentId);
+			removeStudentFromClass(headOfClassList, headOfStudentList, tailOfStudentList,studentId);
 			
 		else if(selectClassOperationsMenuInput == 3){
 			printf("Islem yapmak istediginiz ogrencinin numarasini giriniz: ");
@@ -469,7 +474,7 @@ void printStudentList(STUDENT **head){
 	int i = 0;
 	
 	if(*head == NULL){
-		printf("Head NULL");
+		printf("Head NULL\n");
 		return;
 	}
 	
@@ -805,21 +810,109 @@ void getStudentListOfClass(CLASS** headOfClassList, STUDENT **headOfStudentList,
 	}
 }
 
-void selectClass(CLASS** headOfClassList, STUDENT** headOfStudentList, STUDENT** tailOfStudentList, int studentId){
+void selectClass(CLASS** headOfClassList, STUDENT** headOfStudentList, STUDENT** tailOfStudentList, int studentId, int creditLimit, int numOfClassLimit){
 	
 	int idOfStudent;
 	char idOfClass[10];
-	CLASS *ptrCls;
-	STUDENT* ptrStd;
+	CLASS *clsPtr;
+	STUDENT* stdPtr;
+	CLASS* ptr;
+	int i;
+	FILE *fp;
+	
+	clsPtr = *headOfClassList;
+	
+	printf("Secilebilecek Dersler: \n");
+	while(clsPtr != NULL){
+		printf("%s\t%s\n", clsPtr->ID, clsPtr->name);
+		clsPtr = clsPtr->next;
+	}
+	
+	printf("\n");
 	
 	printf("Eklemek istenilen dersin kodunu giriniz: ");
 	scanf("%s", idOfClass);
 	
+	clsPtr = *headOfClassList;
+	
+	while(clsPtr != NULL && strcmp(idOfClass,clsPtr->ID) != 0){
+		clsPtr = clsPtr->next;
+	}
+	
+	stdPtr = findStudent(studentId, headOfStudentList);
+	
+	if(stdPtr == NULL){
+		printf("Ders secimi yapmak istenilen ogrenci bulunamadi.\n");
+		return;
+	}
+	
+	else if((stdPtr->totalCredit) + clsPtr->credit > creditLimit){
+		printf("Ogrenci kredisi yetersiz oldugu icin ders eklenemedi.\n");
+		return;
+	}
+	
+	else if( (stdPtr->numOfClasses)+1 > numOfClassLimit){
+		printf("Ogrenci maksimum secilebilecek ders sayisina ulastigi icin ders eklenemedi.\n");
+		return;
+	}
+	
+	else if(clsPtr == NULL){
+		printf("Eklemek istediginiz ders acilmadigi icin ders eklenemedi.\n");
+		return;
+	}
+	
+	else if((clsPtr->numOfStudents)+1 > clsPtr->capacity){
+		printf("Dersin kontenjani yetersiz oldugu icin ders eklenemedi.\n");
+		return;
+	}
+		
+	else if(strcmp(idOfClass,clsPtr->ID) == 0){
+		(clsPtr->numOfStudents)++;
+		clsPtr->idsOfStudents = realloc(clsPtr->idsOfStudents,clsPtr->numOfStudents*sizeof(int));
+		*((clsPtr->idsOfStudents)+clsPtr->numOfStudents-1) = studentId;
+		sortList(clsPtr->idsOfStudents, clsPtr->numOfStudents);
+		
+		(stdPtr->numOfClasses)++;
+		stdPtr->totalCredit = (stdPtr->totalCredit) + (clsPtr->credit);
+		
+		if(fp==NULL) {
+    		printf("Error opening file.");
+		}
+		
+		fp = fopen("OgrenciDersKayit.txt", "a");
+		fprintf(fp,"10009,%s ,%d,05.10.2022 ,kayitli\n",clsPtr->ID, stdPtr->ID);
+		fclose(fp);
+	}
+	
+	else{
+		printf("HATA selectClass()\n");
+	}
+	
+	ptr = *headOfClassList;
+	
+}
+
+void removeStudentFromClass(CLASS** headOfClassList, STUDENT** headOfStudentList, STUDENT** tailOfStudentList,int studentId){
+
+}
+
+void updateStudentsFile(STUDENT** head){
+	STUDENT* ptr;
+	FILE* fp;
+	
+	ptr = *head;
+	fp = fopen("ogrenciler.txt", "w");
+	
+	while(ptr != NULL){
+		fprintf(fp,"%d,%s , %s , %d,%d\n",ptr->ID, ptr->name,ptr->surname,ptr->totalCredit,ptr->numOfClasses);	
+		ptr = ptr->next;
+	}
 	
 	
 }
 
-void removeClass(CLASS** headOfClassList, STUDENT** headOfStudentList, STUDENT** tailOfStudentList,int studentId){
-
+void updateClassesFile(CLASS** head){
+	CLASS* ptr;
+	ptr = *head;
 }
 
