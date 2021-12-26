@@ -96,9 +96,8 @@ int main(void){
 	
 	// Dosyalardan verilerin çekilmesi ve değişkenlere kaydedilmesi işlemleri menu'den once yapılmalıdır.
 	getStudentsFromDoc(&headOfStudentsList, &tailOfStudentsList);
-	printf("OGRENCILER ALİNDİ\n");
 	getClassesFromDoc(&headOfClassesList);
-		printf("OGRENCILER ALİNDİ\n");
+
 
 	getClassesInformations(&headOfClassesList);
 	
@@ -109,7 +108,7 @@ int main(void){
 	printClassesList(&headOfClassesList);
 	
 	updateStudentsFile(&headOfStudentsList);
-	//updateClassesFile(&headOfClassesList);
+	updateClassesFile(&headOfClassesList);
 	
 	return 0;
 }
@@ -458,9 +457,10 @@ void selectClassOperations(CLASS** headOfClassList, STUDENT** headOfStudentList,
 		if(selectClassOperationsMenuInput == 1)
 			selectClass(headOfClassList,headOfStudentList,tailOfStudentList,studentId,creditLimit,numOfClassLimit);
 		
-		else if(selectClassOperationsMenuInput == 2)
-			removeStudentFromClass(headOfClassList, headOfStudentList, tailOfStudentList,studentId);
-			
+		else if(selectClassOperationsMenuInput == 2){
+			removeStudentFromClass(headOfClassList, headOfStudentList, tailOfStudentList,studentId);	
+		}
+		
 		else if(selectClassOperationsMenuInput == 3){
 			printf("Islem yapmak istediginiz ogrencinin numarasini giriniz: ");
 			scanf("%d", &studentId);
@@ -823,6 +823,7 @@ void selectClass(CLASS** headOfClassList, STUDENT** headOfStudentList, STUDENT**
 	clsPtr = *headOfClassList;
 	
 	printf("Secilebilecek Dersler: \n");
+	
 	while(clsPtr != NULL){
 		printf("%s\t%s\n", clsPtr->ID, clsPtr->name);
 		clsPtr = clsPtr->next;
@@ -866,7 +867,7 @@ void selectClass(CLASS** headOfClassList, STUDENT** headOfStudentList, STUDENT**
 		return;
 	}
 		
-	else if(strcmp(idOfClass,clsPtr->ID) == 0){
+	else if(strcmp(idOfClass,clsPtr->ID) == 0 && clsPtr != NULL){
 		(clsPtr->numOfStudents)++;
 		clsPtr->idsOfStudents = realloc(clsPtr->idsOfStudents,clsPtr->numOfStudents*sizeof(int));
 		*((clsPtr->idsOfStudents)+clsPtr->numOfStudents-1) = studentId;
@@ -893,7 +894,43 @@ void selectClass(CLASS** headOfClassList, STUDENT** headOfStudentList, STUDENT**
 }
 
 void removeStudentFromClass(CLASS** headOfClassList, STUDENT** headOfStudentList, STUDENT** tailOfStudentList,int studentId){
-
+	CLASS* clsPtr;
+	char idOfClass[10];
+	int i,j;
+	
+	clsPtr = *headOfClassList;
+	
+	printf("Silmek istediginiz dersin kodunu giriniz: ");
+	scanf("%s", idOfClass);
+	
+	while(clsPtr != NULL && strcmp(clsPtr->ID,idOfClass) != 0){
+		clsPtr = clsPtr->next; 
+	}
+	
+	if(strcmp(clsPtr->ID,idOfClass) == 0){
+		i = 0;
+		while(i<clsPtr->numOfStudents && *((clsPtr->idsOfStudents)+i) != studentId){
+			i++;
+		}
+		
+		for(j=i; j<clsPtr->numOfStudents; j++){
+			*((clsPtr->idsOfStudents)+j) = *((clsPtr->idsOfStudents)+j+1);
+		}
+		
+		(clsPtr->numOfStudents)--;
+	}
+	
+	i = 0;
+	
+	while(i<clsPtr->numOfStudents){
+		printf("%d\n",*((clsPtr->idsOfStudents)+i));
+		i++;
+	}	
+	
+	
+	// ders silme islemi yapildigina dair DersKayit dosyasi guncellenmeli ve ogrencinin aldigi kredi ve aldigi ders sayisi bilgileri guncellenmeli
+	
+	
 }
 
 void updateStudentsFile(STUDENT** head){
@@ -906,13 +943,22 @@ void updateStudentsFile(STUDENT** head){
 	while(ptr != NULL){
 		fprintf(fp,"%d,%s , %s , %d,%d\n",ptr->ID, ptr->name,ptr->surname,ptr->totalCredit,ptr->numOfClasses);	
 		ptr = ptr->next;
-	}
-	
+	}	
 	
 }
 
 void updateClassesFile(CLASS** head){
 	CLASS* ptr;
+	FILE *fp;
+	
 	ptr = *head;
+	
+	fp = fopen("dersler.txt", "w");
+	
+	while(ptr != NULL){
+		fprintf(fp,"%s , %s ,%d,%d\n",ptr->ID,ptr->name,ptr->credit,ptr->capacity);
+		ptr = ptr->next;
+	}
+	
 }
 
