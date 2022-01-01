@@ -29,17 +29,21 @@ typedef struct Class{
 	struct Class* next;
 }CLASS;
 
-typedef struct{
+typedef struct classRegistiration{
 	int ID;
 	char idOfClass[CHAR_SIZE];
 	int idOfStudent;
-	DATE dateOfLastProcess;
-}CLAss;
+	char date[CHAR_SIZE];
+	char state[CHAR_SIZE];
+	struct classRegistiration* next;
+}CLASSREGISTIRATION;
 
 
 
 void getStudentsFromDoc();
 void getClassesFromDoc();
+
+
 
 void menu(STUDENT** headOfStudentsList, STUDENT** tailOfStudentList, CLASS** headOfClassesList, int totalNumOfCredit, int totalNumOfClass);
 void studentOperations();
@@ -48,6 +52,10 @@ void studentOperations();
 STUDENT* getStudentInformationFromFile(FILE *fp);
 void addStudent(STUDENT** head, STUDENT** tail);
 CLASS* getClassInformationFromFile(FILE *fp);
+
+
+void getClassRegistirationsFromFile(CLASSREGISTIRATION** head);
+CLASSREGISTIRATION* getClassRegInfo(FILE* fp);
 
 void sortList();
 
@@ -83,9 +91,11 @@ int main(void){
 	STUDENT *headOfStudentsList; 
 	STUDENT *tailOfStudentsList;
 	CLASS *headOfClassesList;
+	CLASSREGISTIRATION* headOfClassRegList;
 	
 	headOfClassesList = NULL;
 	headOfStudentsList = NULL;
+	headOfClassRegList = NULL;
 	
 	printf("Ogrencinin secebilecegi kredi sayisini giriniz: ");
 	scanf("%d", &totalNumOfCredit);
@@ -97,6 +107,7 @@ int main(void){
 	// Dosyalardan verilerin çekilmesi ve değişkenlere kaydedilmesi işlemleri menu'den once yapılmalıdır.
 	getStudentsFromDoc(&headOfStudentsList, &tailOfStudentsList);
 	getClassesFromDoc(&headOfClassesList);
+	getClassRegistirationsFromFile(&headOfClassRegList);
 
 
 	getClassesInformations(&headOfClassesList);
@@ -270,6 +281,66 @@ CLASS* getClassInformationFromFile(FILE *fp){
 	
 }
 
+void getClassRegistirationsFromFile(CLASSREGISTIRATION** head){
+	int lineNumberOfDoc;
+	FILE* fp;
+	CLASSREGISTIRATION* ptr;
+	char nameOfDoc[] = "OgrenciDersKayit.txt"; 
+	
+	lineNumberOfDoc =  countLineNumberOfDoc(nameOfDoc);
+	
+	fp = fopen(nameOfDoc, "r");
+	
+	if(fp == NULL){
+		printf("HATA '%s' isimli dosya acilamadi", nameOfDoc);
+	}
+	
+	
+	while(lineNumberOfDoc > 0){
+		
+		if(*head == NULL){
+			*head = getClassRegInfo(fp);
+		}
+		
+		else{
+			
+			ptr = *head; 
+			
+			while(ptr->next != NULL){
+				ptr = ptr->next;
+			}
+			
+			ptr->next = getClassRegInfo(fp);
+		
+		}
+	
+		lineNumberOfDoc--;
+	}
+	
+	fclose(fp);
+	
+}
+
+CLASSREGISTIRATION* getClassRegInfo(FILE* fp){
+	int id,idOfStudent;
+	char idOfClass[CHAR_SIZE],date[CHAR_SIZE],state[CHAR_SIZE];
+
+	CLASSREGISTIRATION* p;
+	
+	p = (CLASSREGISTIRATION*)malloc(sizeof(CLASSREGISTIRATION));
+	
+	fscanf(fp,"%d,%s ,%d,%s ,%s\n",&id,idOfClass,&idOfStudent,date,state);
+	printf("%d,%s ,%d,%s ,%s\n\n",id,idOfClass,idOfStudent,date,state);
+	
+	p->ID = id;
+	strcpy(p->idOfClass,idOfClass);
+	p->idOfStudent = idOfStudent;
+	strcpy(p->date,date);
+	strcpy(p->state, state);
+	p->next = NULL;
+
+	return p;
+}
 
 void sortStudentList(STUDENT** head){
 	
@@ -291,7 +362,6 @@ void sortStudentList(STUDENT** head){
 	}	
 	
 }
-
 
 
 void sortList(int* list, int n){
@@ -1007,3 +1077,4 @@ void updateClassesFile(CLASS** head){
 	}
 	
 }
+
