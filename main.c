@@ -1134,3 +1134,4 @@ void updateClassRegistirationFile(CLASSREGISTIRATION** head){
 		ptr = ptr->next;
 	}
 }
+
