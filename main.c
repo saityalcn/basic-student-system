@@ -33,7 +33,7 @@ typedef struct{
 	int ID;
 	char idOfClass[CHAR_SIZE];
 	int idOfStudent;
-	DATE dateOfLastProcess;
+	DATE dateOfLastProcess 
 }CLAss;
 
 
@@ -271,21 +271,19 @@ CLASS* getClassInformationFromFile(FILE *fp){
 }
 
 
-// STUDENT LIST'TE HATA VAR
 void sortStudentList(STUDENT** head){
 	
-	STUDENT *ptr1, *ptr2, *tmpForNext, *tmpForPrev;
+	STUDENT *ptr1, *ptr2, *tmp, *tmpForPrev;
 
 	for(ptr1 = *head; ptr1->next != NULL; ptr1 = ptr1->next){
 		for(ptr2 = *head; ptr2->next->next != NULL; ptr2 = ptr2->next){
 			if(ptr2->ID > ptr2->next->ID){
+				//ptr2 -><- ptr2->next;
 				
-				tmpForNext = ptr2->prev->next;
+				tmp = ptr2->next;
 				ptr2->prev->next = ptr2->next;
-				ptr2->next = ptr2->next->next;
+				ptr2->next->next = ptr2;
 				
-				tmpForPrev = ptr2->prev;
-				ptr2->prev = ptr2;
 				
 		
 			}	
@@ -624,9 +622,11 @@ void deleteStudent(STUDENT** head, STUDENT** tail){
 
 void printClassesOfStudent(CLASS** head){
 	
-	int i,id,j;
+	int i,id,j,isClassFound;
 	CLASS* ptr;
 	char *classes[20];
+	char nameOfFile[60],idText[15];
+	FILE *fp;
 	
 	printf("Derslerini yazdirmak istediginiz ogrencinin ogrenci numarasini giriniz: ");
 	scanf("%d", &id);
@@ -634,25 +634,44 @@ void printClassesOfStudent(CLASS** head){
 	ptr = *head;
 	
 	j = 0;
+	isClassFound = 0;
+	
+	i = 0; 
+	
+	itoa(id,idText,10);
+	strcpy(nameOfFile,idText);
+	strcat(nameOfFile, "_DERSPROGRAMI");
+	strcat(nameOfFile,".txt");
+	
 	
 	while(ptr!=NULL){
 		
 		i = 0;
-		
-		printf("WHILE ONCE\n");
-		while(i <= (ptr->numOfStudents)-1 && *((ptr->idsOfStudents)+i) != id){
-			printf("i: %d ptr: %d id of student: %d\n", i,(ptr->numOfStudents) , *((ptr->idsOfStudents)+i));	
+	
+		while(i < (ptr->numOfStudents) && *((ptr->idsOfStudents)+i) != id)	
 			i++;
-		}
 		
-		printf("WHILE SONRA\n");
-		
-		if(*((ptr->idsOfStudents)+i) == id)
+		if( !(i >= ptr->numOfStudents) ){
+			
+			if(!isClassFound){
+				fp = fopen(nameOfFile, "w");
+				printf("%d Numarali ogrencinin aldigi dersler: \n",id);
+			}
+			
 			printf("%s\n", ptr->ID);
+			fprintf(fp,"%s\t%s\n",ptr->ID, ptr->name);	
+			isClassFound = 1;	
+		}
 			
 		ptr = ptr->next;
 	}
 	
+	if(!(isClassFound))
+		printf("Ogrencinin kayit oldugu bir ders bulunamadi.\n");
+	else
+		fclose(fp);
+	
+	printf("\n");	
 }
 
 
@@ -718,10 +737,36 @@ CLASS* createClass(){
 	return ptr;
 }
 
+void updateClassRegistryFile(char* idOfClass, char*state){
+	FILE *fp;
+	int registirationId,studentId,lineNumberOfDoc;
+	char idOfClassOfRec[60], date[60],stateOfRec[60];
+	
+	printf("update func\n");
+	
+	
+	lineNumberOfDoc =  countLineNumberOfDoc("OgrenciDersKayit.txt");
+	fp  = fopen("OgrenciDersKayit.txt", "r+");
+	
+	while(lineNumberOfDoc>0){
+		fscanf(fp,"%d,%s ,%d,%s ,", &registirationId,idOfClassOfRec,&studentId,date);
+		if(strcmp(idOfClass, idOfClassOfRec) == 0){
+			printf("%s\n", idOfClassOfRec);
+			rewind(fp);
+			fprintf(fp,"%s\n","deneme");	
+		}
+		lineNumberOfDoc--;
+	}
+	
+	fclose(fp);
+	
+}
+
 void deleteClassFromList(CLASS** head){
 	
 	CLASS* ptr;
-	CLASS* prevPtr;;
+	CLASS* prevPtr;
+	FILE *fp;
 	char id[10];
 	
 	printf("Kapatmak istediginiz dersin kodunu giriniz: ");
@@ -733,6 +778,8 @@ void deleteClassFromList(CLASS** head){
 		*head = ptr->next;
 		printf("%s kodlu ders basariyla kapatildi\n", id);
 		// DersKayit.txt adlı dosyaya bu durumun eklenmis olmasi lazim
+		// ogrencilerin de kredileri ve aldiklari ders sayilari guncellenmeli
+		updateClassRegistryFile(id, "kayitli");
 		return;
 	}
 	
@@ -740,8 +787,6 @@ void deleteClassFromList(CLASS** head){
 		prevPtr = ptr;
 		ptr = ptr->next;
 	}
-	
-
 	
 	if(ptr == NULL){
 		printf("Kapatilmak istenen ders ders listesinde bulunamadi.\n");
@@ -751,7 +796,9 @@ void deleteClassFromList(CLASS** head){
 	else{
 		prevPtr->next = ptr->next;
 		printf("%s kodlu ders basariyla kapatildi\n", id);
-		// DErsKayıt adlı dosyaya bu durumun eklenmis olmasi lazim
+		// ogrencilerin de kredileri ve aldiklari ders sayilari guncellenmeli
+		// DersKayit.txt adlı dosyaya bu durumun eklenmis olmasi lazim
+		updateClassRegistryFile(id, "kayitli");
 	}
 	
 	
