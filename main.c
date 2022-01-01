@@ -33,7 +33,7 @@ typedef struct{
 	int ID;
 	char idOfClass[CHAR_SIZE];
 	int idOfStudent;
-	DATE dateOfLastProcess 
+	DATE dateOfLastProcess;
 }CLAss;
 
 
