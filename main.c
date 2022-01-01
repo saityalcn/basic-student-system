@@ -746,15 +746,14 @@ void updateClassRegistryFile(char* idOfClass, char*state){
 	
 	
 	lineNumberOfDoc =  countLineNumberOfDoc("OgrenciDersKayit.txt");
+	
 	fp  = fopen("OgrenciDersKayit.txt", "r+");
+
 	
 	while(lineNumberOfDoc>0){
-		fscanf(fp,"%d,%s ,%d,%s ,", &registirationId,idOfClassOfRec,&studentId,date);
-		if(strcmp(idOfClass, idOfClassOfRec) == 0){
+		fscanf(fp,"%d,%s ,%d,%s ,%s\n", &registirationId,idOfClassOfRec,&studentId,date,stateOfRec);
+		if(strcmp(idOfClass, idOfClassOfRec) == 0)
 			printf("%s\n", idOfClassOfRec);
-			rewind(fp);
-			fprintf(fp,"%s\n","deneme");	
-		}
 		lineNumberOfDoc--;
 	}
 	
@@ -1008,4 +1007,3 @@ void updateClassesFile(CLASS** head){
 	}
 	
 }
-
