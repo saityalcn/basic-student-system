@@ -466,7 +466,7 @@ void studentOperations(STUDENT** head, STUDENT** tail, CLASS** headOfClassList,C
 	while(studentOperationsMenuInput != 0){
 		printf("Ogrenci eklemek icin 1\n");
 		printf("Ogrenci silmek icin 2\n");
-		printf("Ogrencinin aldigi dersleri yazdirmak icin 3// Calismiyor\n");
+		printf("Ogrencinin aldigi dersleri yazdirmak icin 3\n");
 		printf("Cikmak icin 0 giriniz\nSeciminiz: ");
 		scanf("%d", &studentOperationsMenuInput);
 		printf("\n");
@@ -477,7 +477,7 @@ void studentOperations(STUDENT** head, STUDENT** tail, CLASS** headOfClassList,C
 			deleteStudent(head,tail,headOfClassRegList);
 			
 		else if(studentOperationsMenuInput == 3)
-			printClassesOfStudent(headOfClassList);			// Calismiyor
+			printClassesOfStudent(headOfClassList);			
 	}
 	
 }
@@ -807,30 +807,6 @@ CLASS* createClass(){
 	return ptr;
 }
 
-void updateClassRegistryFile(char* idOfClass, char*state){
-	FILE *fp;
-	int registirationId,studentId,lineNumberOfDoc;
-	char idOfClassOfRec[60], date[60],stateOfRec[60];
-	
-	printf("update func\n");
-	
-	
-	lineNumberOfDoc =  countLineNumberOfDoc("OgrenciDersKayit.txt");
-	
-	fp  = fopen("OgrenciDersKayit.txt", "r+");
-
-	
-	while(lineNumberOfDoc>0){
-		fscanf(fp,"%d,%s ,%d,%s ,%s\n", &registirationId,idOfClassOfRec,&studentId,date,stateOfRec);
-		if(strcmp(idOfClass, idOfClassOfRec) == 0)
-			printf("%s\n", idOfClassOfRec);
-		lineNumberOfDoc--;
-	}
-	
-	fclose(fp);
-	
-}
-
 void updateStates(CLASSREGISTIRATION** headOfClassRegList, char* newState, char* idOfClass){
 	
 	CLASSREGISTIRATION* ptr;
@@ -888,7 +864,7 @@ void deleteClassFromList(CLASS** head,CLASSREGISTIRATION** headOfClassRegList){
 		printf("%s kodlu ders basariyla kapatildi\n", id);
 		// ogrencilerin de kredileri ve aldiklari ders sayilari guncellenmeli
 		updateStates(headOfClassRegList, "ders_kapandi",id);
-		updateClassRegistryFile(id, "kayitli");
+		//updateClassRegistryFile(id, "kayitli");
 	}
 	
 	
@@ -969,10 +945,8 @@ void selectClass(CLASS** headOfClassList, STUDENT** headOfStudentList, STUDENT**
 	CLASS *clsPtr;
 	STUDENT* stdPtr;
 	CLASSREGISTIRATION* clsRegPtr;
-	CLASS* ptr;
 	int prevRecordId = 10001;
 	int i;
-	FILE *fp;
 	
 	clsPtr = *headOfClassList;
 	
@@ -1029,11 +1003,7 @@ void selectClass(CLASS** headOfClassList, STUDENT** headOfStudentList, STUDENT**
 		
 		(stdPtr->numOfClasses)++;
 		stdPtr->totalCredit = (stdPtr->totalCredit) + (clsPtr->credit);
-		
-		if(fp==NULL) {
-    		printf("Error opening file.");
-		}
-		
+				
 		clsRegPtr = *headOfClassRegList;
 		
 		while(clsRegPtr->next != NULL){
@@ -1047,13 +1017,14 @@ void selectClass(CLASS** headOfClassList, STUDENT** headOfStudentList, STUDENT**
 	else{
 		printf("HATA selectClass()\n");
 	}
-	
-	ptr = *headOfClassList;
+
 	
 }
 
 void removeStudentFromClass(CLASS** headOfClassList, STUDENT** headOfStudentList, STUDENT** tailOfStudentList,CLASSREGISTIRATION** headOfClassRegList,int studentId){
 	CLASS* clsPtr;
+	STUDENT* stdPtr;
+	CLASSREGISTIRATION* ptr;
 	char idOfClass[10];
 	int i,j;
 	
@@ -1071,13 +1042,42 @@ void removeStudentFromClass(CLASS** headOfClassList, STUDENT** headOfStudentList
 		while(i<clsPtr->numOfStudents && *((clsPtr->idsOfStudents)+i) != studentId){
 			i++;
 		}
-		
+	
+				
 		for(j=i; j<clsPtr->numOfStudents; j++){
 			*((clsPtr->idsOfStudents)+j) = *((clsPtr->idsOfStudents)+j+1);
 		}
 		
 		(clsPtr->numOfStudents)--;
+		
+			
+		if((studentId-(*headOfStudentList)->ID) < (studentId-(*tailOfStudentList)->ID) ){
+			stdPtr = *headOfStudentList;
+	
+			while(stdPtr != NULL && stdPtr->ID != studentId)	
+				stdPtr = stdPtr->next;
+	
+			if(stdPtr->ID == studentId){
+				(stdPtr->numOfClasses)--;
+				stdPtr->totalCredit -= clsPtr->credit;
+			}
+		
+		}
+		else{
+			
+			stdPtr = *tailOfStudentList;
+	
+			while(stdPtr != NULL && stdPtr->ID != studentId)	
+				stdPtr = stdPtr->prev;
+	
+			if(stdPtr->ID == studentId){
+				(stdPtr->numOfClasses)--;
+				stdPtr->totalCredit -= clsPtr->credit;
+			}
+		}
+	
 	}
+	
 	
 	i = 0;
 	
@@ -1085,9 +1085,17 @@ void removeStudentFromClass(CLASS** headOfClassList, STUDENT** headOfStudentList
 		printf("%d\n",*((clsPtr->idsOfStudents)+i));
 		i++;
 	}	
+
+	ptr = *headOfClassRegList;
+
 	
-	
-	// ders silme islemi yapildigina dair DersKayit dosyasi guncellenmeli ve ogrencinin aldigi kredi ve aldigi ders sayisi bilgileri guncellenmeli
+	while(ptr != NULL){
+		if(strcmp(ptr->idOfClass,idOfClass) == 0 && ptr->idOfStudent == studentId){
+			strcpy(ptr->state, "sildi");
+		}
+		
+		ptr = ptr->next;
+	}
 	
 	
 }
