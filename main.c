@@ -45,9 +45,9 @@ void getClassesFromDoc();
 
 
 
-void menu(STUDENT** headOfStudentsList, STUDENT** tailOfStudentList, CLASS** headOfClassesList, int totalNumOfCredit, int totalNumOfClass);
-void studentOperations();
-
+void menu(STUDENT** headOfStudentsList, STUDENT** tailOfStudentList, CLASS** headOfClassesList, CLASSREGISTIRATION** headOfClassReg, int totalNumOfCredit, int totalNumOfClass);
+void studentOperations(STUDENT** headOfStudentsList,STUDENT ** tailOfStudentList,CLASS** headOfClassesList,CLASSREGISTIRATION** headOfClassRegList);
+void classOperations(CLASS **headOfClassList, STUDENT** headOfStudentList, STUDENT** tailOfStudentList,CLASSREGISTIRATION** headOfClassRegList);
 
 STUDENT* getStudentInformationFromFile(FILE *fp);
 void addStudent(STUDENT** head, STUDENT** tail);
@@ -63,22 +63,22 @@ void getClassesInformations(CLASS** headOfClassesList);
 
 STUDENT* createStudent();
 STUDENT* findStudent(int id, STUDENT** head);
-void deleteStudent(STUDENT** head, STUDENT** tail);
+void deleteStudent(STUDENT** head, STUDENT** tail,CLASSREGISTIRATION** headOfClassRegList);
 void printClassesOfStudent(CLASS** head);
 
-void classOperations(CLASS **headOfClassList, STUDENT** headOfStudentList, STUDENT** tailOfStudentList);
 void addNewClassToList(CLASS **head);
 CLASS* createClass();
-void deleteClassFromList(CLASS **head);
+void deleteClassFromList(CLASS **head, CLASSREGISTIRATION** headOfClassRegList);
 void addStudentToClass();
 void getStudentListOfClass(CLASS **headOfClassList, STUDENT **headOfStudentList,STUDENT** tailOfStudentList);
 
-void selectClassOperations(CLASS **headOfClassList, STUDENT** headOfStudentList, STUDENT** tailOfStudentList, int creditLimit, int numOfClassLimit);
-void selectClass(CLASS** headOfClassList, STUDENT** headOfStudentList, STUDENT** tailOfStudentList, int studentId,int creditLimit, int numOfClassLimit);
-void removeStudentFromClass(CLASS** headOfClassList, STUDENT** headOfStudentList, STUDENT** tailOfStudentList, int studentId);
+void selectClassOperations(CLASS **headOfClassList, STUDENT** headOfStudentList, STUDENT** tailOfStudentList, CLASSREGISTIRATION** headOfClassRegList,int creditLimit, int numOfClassLimit);
+void selectClass(CLASS** headOfClassList, STUDENT** headOfStudentList, STUDENT** tailOfStudentList, CLASSREGISTIRATION** headOfClassRegList,int studentId,int creditLimit, int numOfClassLimit);
+void removeStudentFromClass(CLASS** headOfClassList, STUDENT** headOfStudentList, STUDENT** tailOfStudentList, CLASSREGISTIRATION** headOfClassRegList, int studentId);
 
 void updateStudentsFile(STUDENT** head);
 void updateClassesFile(CLASS** head);
+void updateClassRegistirationFile(CLASSREGISTIRATION** head);
 
 void printStudentList(STUDENT** head);
 void printStudentListV2(STUDENT** tail);
@@ -109,10 +109,9 @@ int main(void){
 	getClassesFromDoc(&headOfClassesList);
 	getClassRegistirationsFromFile(&headOfClassRegList);
 
-
 	getClassesInformations(&headOfClassesList);
 	
-	menu(&headOfStudentsList,&tailOfStudentsList, &headOfClassesList, totalNumOfCredit,totalNumOfClass);
+	menu(&headOfStudentsList,&tailOfStudentsList, &headOfClassesList,&headOfClassRegList, totalNumOfCredit,totalNumOfClass);
 	printStudentList(&headOfStudentsList);
 	printStudentListV2(&tailOfStudentsList);
 	printf("\n\n\n");
@@ -120,6 +119,7 @@ int main(void){
 	
 	updateStudentsFile(&headOfStudentsList);
 	updateClassesFile(&headOfClassesList);
+	updateClassRegistirationFile(&headOfClassRegList);
 	
 	return 0;
 }
@@ -432,7 +432,7 @@ void getClassesInformations(CLASS** headOfClassesList){
 	
 }
 
-void menu(STUDENT** headOfStudentsList,STUDENT** tailOfStudentList, CLASS** headOfClassesList, int totalNumOfCredit, int totalNumOfClass){
+void menu(STUDENT** headOfStudentsList,STUDENT** tailOfStudentList, CLASS** headOfClassesList, CLASSREGISTIRATION** headOfClassRegList,int totalNumOfCredit, int totalNumOfClass){
 	int menuInput = 1;
 	
 	while(menuInput != 0){
@@ -445,13 +445,13 @@ void menu(STUDENT** headOfStudentsList,STUDENT** tailOfStudentList, CLASS** head
 		printf("\n");
 		
 		if(menuInput == 1)
-			studentOperations(headOfStudentsList,tailOfStudentList,headOfClassesList);
+			studentOperations(headOfStudentsList,tailOfStudentList,headOfClassesList,headOfClassRegList);
 		
 		else if(menuInput == 2)
-			classOperations(headOfClassesList,headOfStudentsList,tailOfStudentList);
+			classOperations(headOfClassesList,headOfStudentsList,tailOfStudentList,headOfClassRegList);
 			
 		else if(menuInput == 3)
-			selectClassOperations(headOfClassesList,headOfStudentsList,tailOfStudentList,totalNumOfCredit, totalNumOfClass);
+			selectClassOperations(headOfClassesList,headOfStudentsList,tailOfStudentList,headOfClassRegList,totalNumOfCredit, totalNumOfClass);
 			
 		else if(menuInput != 0){
 			printf("Hatali secim yaptiniz tekrar deneyiniz.\n");
@@ -460,7 +460,7 @@ void menu(STUDENT** headOfStudentsList,STUDENT** tailOfStudentList, CLASS** head
 		
 }
 
-void studentOperations(STUDENT** head, STUDENT** tail, CLASS** headOfClassList){
+void studentOperations(STUDENT** head, STUDENT** tail, CLASS** headOfClassList,CLASSREGISTIRATION** headOfClassRegList){
 	int studentOperationsMenuInput = 1;
 	
 	while(studentOperationsMenuInput != 0){
@@ -474,7 +474,7 @@ void studentOperations(STUDENT** head, STUDENT** tail, CLASS** headOfClassList){
 			addStudent(head,tail);
 		
 		else if(studentOperationsMenuInput == 2)
-			deleteStudent(head,tail);
+			deleteStudent(head,tail,headOfClassRegList);
 			
 		else if(studentOperationsMenuInput == 3)
 			printClassesOfStudent(headOfClassList);			// Calismiyor
@@ -483,7 +483,7 @@ void studentOperations(STUDENT** head, STUDENT** tail, CLASS** headOfClassList){
 }
 
 
-void classOperations(CLASS** headOfClassList, STUDENT** headOfStudentList,STUDENT** tailOfStudentList){
+void classOperations(CLASS** headOfClassList, STUDENT** headOfStudentList,STUDENT** tailOfStudentList,CLASSREGISTIRATION** headOfClassRegList){
 	int classOperationsMenuInput = 1;
 	
 	while(classOperationsMenuInput != 0){
@@ -498,7 +498,7 @@ void classOperations(CLASS** headOfClassList, STUDENT** headOfStudentList,STUDEN
 			addNewClassToList(headOfClassList);
 		
 		else if(classOperationsMenuInput == 2)
-			deleteClassFromList(headOfClassList);
+			deleteClassFromList(headOfClassList, headOfClassRegList);
 			
 		else if(classOperationsMenuInput == 3){
 			getStudentListOfClass(headOfClassList,headOfStudentList,tailOfStudentList);
@@ -507,7 +507,7 @@ void classOperations(CLASS** headOfClassList, STUDENT** headOfStudentList,STUDEN
 	
 }
 
-void selectClassOperations(CLASS** headOfClassList, STUDENT** headOfStudentList, STUDENT** tailOfStudentList, int creditLimit, int numOfClassLimit){
+void selectClassOperations(CLASS** headOfClassList, STUDENT** headOfStudentList, STUDENT** tailOfStudentList,CLASSREGISTIRATION** headOfClassRegList, int creditLimit, int numOfClassLimit){
 	int selectClassOperationsMenuInput = 1;
 	int studentId;
 		
@@ -523,10 +523,10 @@ void selectClassOperations(CLASS** headOfClassList, STUDENT** headOfStudentList,
 		printf("\n");
 		
 		if(selectClassOperationsMenuInput == 1)
-			selectClass(headOfClassList,headOfStudentList,tailOfStudentList,studentId,creditLimit,numOfClassLimit);
+			selectClass(headOfClassList,headOfStudentList,tailOfStudentList,headOfClassRegList,studentId,creditLimit,numOfClassLimit);
 		
 		else if(selectClassOperationsMenuInput == 2){
-			removeStudentFromClass(headOfClassList, headOfStudentList, tailOfStudentList,studentId);	
+			removeStudentFromClass(headOfClassList, headOfStudentList, tailOfStudentList,headOfClassRegList,studentId);	
 		}
 		
 		else if(selectClassOperationsMenuInput == 3){
@@ -653,7 +653,7 @@ STUDENT* findStudent(int id, STUDENT **head){
 }
 
 
-void deleteStudent(STUDENT** head, STUDENT** tail){
+void deleteStudent(STUDENT** head, STUDENT** tail,CLASSREGISTIRATION** headOfClassRegList){
 // liste sirali oldugu icin degistirilebilir.	
 	int id;
 	STUDENT *ptr;
@@ -831,9 +831,30 @@ void updateClassRegistryFile(char* idOfClass, char*state){
 	
 }
 
-void deleteClassFromList(CLASS** head){
+void updateStates(CLASSREGISTIRATION** headOfClassRegList, char* newState, char* idOfClass){
+	
+	CLASSREGISTIRATION* ptr;
+	ptr = *headOfClassRegList;
+	
+	printf("FUNC ICI\n");
+	
+	while(ptr != NULL){
+		if(strcmp(ptr->idOfClass,idOfClass) == 0){
+			printf("%s", newState);
+			printf("IF ICI\n");
+			strcpy(ptr->state, newState);
+		}
+		
+		ptr = ptr->next;
+	}
+		
+}
+
+
+void deleteClassFromList(CLASS** head,CLASSREGISTIRATION** headOfClassRegList){
 	
 	CLASS* ptr;
+
 	CLASS* prevPtr;
 	FILE *fp;
 	char id[10];
@@ -846,9 +867,9 @@ void deleteClassFromList(CLASS** head){
 	if(strcmp(ptr->ID, id) == 0){
 		*head = ptr->next;
 		printf("%s kodlu ders basariyla kapatildi\n", id);
-		// DersKayit.txt adlı dosyaya bu durumun eklenmis olmasi lazim
+		updateStates(headOfClassRegList, "ders_kapandi",id);
 		// ogrencilerin de kredileri ve aldiklari ders sayilari guncellenmeli
-		updateClassRegistryFile(id, "kayitli");
+		//updateClassRegistryFile(id, "kayitli");
 		return;
 	}
 	
@@ -866,7 +887,7 @@ void deleteClassFromList(CLASS** head){
 		prevPtr->next = ptr->next;
 		printf("%s kodlu ders basariyla kapatildi\n", id);
 		// ogrencilerin de kredileri ve aldiklari ders sayilari guncellenmeli
-		// DersKayit.txt adlı dosyaya bu durumun eklenmis olmasi lazim
+		updateStates(headOfClassRegList, "ders_kapandi",id);
 		updateClassRegistryFile(id, "kayitli");
 	}
 	
@@ -926,13 +947,30 @@ void getStudentListOfClass(CLASS** headOfClassList, STUDENT **headOfStudentList,
 	}
 }
 
-void selectClass(CLASS** headOfClassList, STUDENT** headOfStudentList, STUDENT** tailOfStudentList, int studentId, int creditLimit, int numOfClassLimit){
+
+CLASSREGISTIRATION* createClassRec(int id, char* classId, int studentId){
+	CLASSREGISTIRATION* p;
+	p = (CLASSREGISTIRATION*)malloc(sizeof(CLASSREGISTIRATION));
 	
+	p->ID = id;
+	strcpy(p->idOfClass,classId);
+	p->idOfStudent = studentId;
+	strcpy(p->date,"01.01.1975"); 
+	strcpy(p->state, "kayitli");
+	p->next = NULL;
+	
+	return p;
+}
+
+void selectClass(CLASS** headOfClassList, STUDENT** headOfStudentList, STUDENT** tailOfStudentList, CLASSREGISTIRATION **headOfClassRegList,int studentId, int creditLimit, int numOfClassLimit){
+	// ogrenci ayni dersi iki defa ekleyebiliyor bunun olmamasi lazim
 	int idOfStudent;
 	char idOfClass[10];
 	CLASS *clsPtr;
 	STUDENT* stdPtr;
+	CLASSREGISTIRATION* clsRegPtr;
 	CLASS* ptr;
+	int prevRecordId = 10001;
 	int i;
 	FILE *fp;
 	
@@ -996,9 +1034,14 @@ void selectClass(CLASS** headOfClassList, STUDENT** headOfStudentList, STUDENT**
     		printf("Error opening file.");
 		}
 		
-		fp = fopen("OgrenciDersKayit.txt", "a");
-		fprintf(fp,"10009,%s ,%d,05.10.2022 ,kayitli\n",clsPtr->ID, stdPtr->ID);
-		fclose(fp);
+		clsRegPtr = *headOfClassRegList;
+		
+		while(clsRegPtr->next != NULL){
+			clsRegPtr = clsRegPtr->next;
+			prevRecordId = clsRegPtr->ID;
+		}
+		
+		clsRegPtr->next = createClassRec(prevRecordId+1, idOfClass, studentId);
 	}
 	
 	else{
@@ -1009,7 +1052,7 @@ void selectClass(CLASS** headOfClassList, STUDENT** headOfStudentList, STUDENT**
 	
 }
 
-void removeStudentFromClass(CLASS** headOfClassList, STUDENT** headOfStudentList, STUDENT** tailOfStudentList,int studentId){
+void removeStudentFromClass(CLASS** headOfClassList, STUDENT** headOfStudentList, STUDENT** tailOfStudentList,CLASSREGISTIRATION** headOfClassRegList,int studentId){
 	CLASS* clsPtr;
 	char idOfClass[10];
 	int i,j;
@@ -1078,3 +1121,16 @@ void updateClassesFile(CLASS** head){
 	
 }
 
+void updateClassRegistirationFile(CLASSREGISTIRATION** head){
+	CLASSREGISTIRATION* ptr;
+	FILE *fp;
+	
+	ptr = *head;
+	
+	fp = fopen("OgrenciDersKayit.txt", "w");
+	
+	while(ptr != NULL){
+		fprintf(fp,"%d,%s ,%d,%s ,%s\n",ptr->ID,ptr->idOfClass,ptr->idOfStudent,ptr->date,ptr->state);
+		ptr = ptr->next;
+	}
+}
