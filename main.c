@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <locale.h>
 #define CHAR_SIZE 50
 
 typedef struct{
@@ -43,9 +44,9 @@ void getClassesFromDoc();
 void menu(STUDENT** headOfStudentsList, STUDENT** tailOfStudentList, CLASS** headOfClassesList, CLASSREGISTIRATION** headOfClassReg, int totalNumOfCredit, int totalNumOfClass);
 void studentOperations(STUDENT** headOfStudentsList,STUDENT ** tailOfStudentList,CLASS** headOfClassesList,CLASSREGISTIRATION** headOfClassRegList);
 void classOperations(CLASS **headOfClassList, STUDENT** headOfStudentList, STUDENT** tailOfStudentList,CLASSREGISTIRATION** headOfClassRegList);
-STUDENT* getStudentInformationFromFile(FILE *fp);
+STUDENT* getStudentInformationFromFile(FILE *fp, char delimeter[2]);
 void addStudent(STUDENT** head, STUDENT** tail);
-CLASS* getClassInformationFromFile(FILE *fp);
+CLASS* getClassInformationFromFile(FILE *fp,char delimiter[2]);
 void getClassRegistirationsFromFile(CLASSREGISTIRATION** head);
 CLASSREGISTIRATION* getClassRegInfo(FILE* fp);
 void sortList();
@@ -75,6 +76,9 @@ int main(void){
 	STUDENT *tailOfStudentsList;
 	CLASS *headOfClassesList;
 	CLASSREGISTIRATION* headOfClassRegList;
+	
+	setlocale(LC_ALL, "Turkish"); 
+	
 	
 	headOfClassesList = NULL;
 	headOfStudentsList = NULL;
@@ -135,9 +139,14 @@ void getStudentsFromDoc(STUDENT** head, STUDENT** tail){
 		printf("HATA '%s' isimli dosya acilamadi", nameOfDoc);
 	}
 	
+	if(feof(fp) != 0){
+		printf("ogrenciler dosyasi bos oldugu icin okuma yapilmadi.\n");
+		return;
+	}
+	
 	while(lineNumberOfDoc > 0){	
 		if(*head == NULL){
-			*head = getStudentInformationFromFile(fp);
+			*head = getStudentInformationFromFile(fp,",\0");
 			(*head)->prev = NULL;
 		}
 		else{
@@ -145,7 +154,7 @@ void getStudentsFromDoc(STUDENT** head, STUDENT** tail){
 			while(ptr->next != NULL){
 				ptr = ptr->next;
 			}
-			ptr->next = getStudentInformationFromFile(fp);
+			ptr->next = getStudentInformationFromFile(fp,",\0");
 			ptr->next->prev = ptr;
 		}
 		*tail = ptr->next;
@@ -154,22 +163,33 @@ void getStudentsFromDoc(STUDENT** head, STUDENT** tail){
 	fclose(fp);
 }
 
-STUDENT* getStudentInformationFromFile(FILE *fp){
+STUDENT* getStudentInformationFromFile(FILE *fp,char delimiter[2]){
 	int i,totalCredit,numOfClasses;
 	STUDENT* sp;
 	char n[CHAR_SIZE],sn[CHAR_SIZE];
+	char *token;
+	char buf[255];
 	
 	sp  = (STUDENT*)malloc( sizeof(STUDENT) );
-			
-	fscanf(fp,"%d, %s , %s ,%d,%d\n",&i,n,sn,&totalCredit,&numOfClasses);
-				
-	sp->ID = i;
-	strcpy(sp->name, n);
-	strcpy(sp->surname, sn);
-	sp->totalCredit = totalCredit;
-	sp->numOfClasses = numOfClasses;
+	
+	fgets(buf,255,fp);
+	
+	token=strtok(buf,delimiter);	
+	sp->ID = atoi(token);
+	
+	token=strtok(NULL,delimiter);
+	strcpy(sp->name,token);
+	
+	token=strtok(NULL,delimiter);
+	strcpy(sp->surname,token);
+	
+	token=strtok(NULL,delimiter);
+	sp->totalCredit = atoi(token);
+	
+	token=strtok(NULL,delimiter);
+	sp->numOfClasses = atoi(token);
+	
 	sp->next = NULL;
-	sp->prev = NULL;
 	
 	return sp;	
 }
@@ -189,34 +209,42 @@ void getClassesFromDoc(CLASS** head){
 	
 	while(lineNumberOfDoc > 0){
 		if(*head == NULL){
-			*head = getClassInformationFromFile(fp);
+			*head = getClassInformationFromFile(fp,",\0");
 		}
 		else{
 			ptr = *head; 
 			while(ptr->next != NULL){
 				ptr = ptr->next;
 			}
-			ptr->next = getClassInformationFromFile(fp);
+			ptr->next = getClassInformationFromFile(fp,",\0");
 		}
 		lineNumberOfDoc--;
 	}
 	fclose(fp);	
 }
 
-CLASS* getClassInformationFromFile(FILE *fp){
-	char i[10];
-	char n[CHAR_SIZE];
+CLASS* getClassInformationFromFile(FILE *fp,char delimiter[2]){
+	char i[10],buf[255],n[CHAR_SIZE];
 	int cap, cre;
 	CLASS* cp;
+	char *tmp;
 	
 	cp = (CLASS*)malloc(sizeof(CLASS));
 	
-	fscanf(fp,"%s , %s ,%d,%d\n",i,n,&cre,&cap);
+	fgets(buf,255,fp);
 	
-	strcpy(cp->ID,i);
-	strcpy(cp->name,n);
-	cp->credit = cre;
-	cp->capacity = cap;
+	tmp=strtok(buf,delimiter);	//
+	strcpy(cp->ID,tmp);
+
+	tmp=strtok(NULL,delimiter);		//
+	strcpy(cp->name,tmp);
+	
+	tmp=strtok(NULL,delimiter);
+	cp->credit = atoi(tmp);
+	
+	tmp=strtok(NULL,delimiter);
+	cp->capacity = atoi(tmp);
+	
 	cp->idsOfStudents = NULL;
 	cp->numOfStudents = 0;
 	cp->next = NULL;
@@ -274,32 +302,8 @@ CLASSREGISTIRATION* getClassRegInfo(FILE* fp){
 	return p;
 }
 
-void sortStudentList(STUDENT** head){
-	
-	STUDENT *ptr1, *ptr2, *tmp, *tmpForPrev;
-
-	for(ptr1 = *head; ptr1->next != NULL; ptr1 = ptr1->next){
-		for(ptr2 = *head; ptr2->next->next != NULL; ptr2 = ptr2->next){
-			if(ptr2->ID > ptr2->next->ID){
-				//ptr2 -><- ptr2->next;
-				
-				tmp = ptr2->next;
-				ptr2->prev->next = ptr2->next;
-				ptr2->next->next = ptr2;
-				
-				
-		
-			}	
-		}
-	}	
-	
-}
-
-
 void sortList(int* list, int n){
-	int i;
-	int j;
-	int tmp;
+	int i,j,tmp;
 	
 	for(i=0; i<n; i++){
 		for(j=0; j<n-1; j++){
@@ -310,7 +314,6 @@ void sortList(int* list, int n){
 			}
 		}
 	}
-	
 }
 
 void getClassesInformations(CLASS** headOfClassesList){
@@ -339,7 +342,6 @@ void getClassesInformations(CLASS** headOfClassesList){
 			}
 			lineNumber++;
 		}
-		
 		sortList(ptr->idsOfStudents,ptr->numOfStudents);
 		i = 0;
 		ptr = ptr->next;
@@ -356,8 +358,7 @@ void getClassesInformations(CLASS** headOfClassesList){
 		}
 		printf("\n\n");
 		ptr = ptr->next;
-	}	
-	
+	}		
 }
 
 void menu(STUDENT** headOfStudentsList,STUDENT** tailOfStudentList, CLASS** headOfClassesList, CLASSREGISTIRATION** headOfClassRegList,int totalNumOfCredit, int totalNumOfClass){
@@ -582,12 +583,12 @@ void deleteStudent(STUDENT** head, STUDENT** tail,CLASSREGISTIRATION** headOfCla
 	if((*head)->ID == id){
 		(*head)->next->prev = (*head)->prev;
 		(*head) = (*head)->next;
-		printf("%d numarali ogrenciyi silme islemi basariliiii.\n", id);
+		printf("%d numarali ogrenciyi silme islemi basarili.\n", id);
 	}
 	else if((*tail)->ID == id){
 		(*tail)->prev->next = (*tail)->next;
 		(*tail) = (*tail)->prev;
-		printf("%d numarali ogrenciyi silme islemi basariliiii.\n", id);
+		printf("%d numarali ogrenciyi silme islemi basarili.\n", id);
 	}
 	
 	else{
@@ -607,7 +608,6 @@ void deleteStudent(STUDENT** head, STUDENT** tail,CLASSREGISTIRATION** headOfCla
 }
 
 void printClassesOfStudent(CLASS** head){
-	
 	int i,id,isClassFound;
 	CLASS* ptr;
 	char *classes[20];
@@ -618,7 +618,6 @@ void printClassesOfStudent(CLASS** head){
 	scanf("%d", &id);
 	
 	ptr = *head;
-	
 	isClassFound = 0;
 	i = 0; 
 	
@@ -626,7 +625,6 @@ void printClassesOfStudent(CLASS** head){
 	strcpy(nameOfFile,idText);
 	strcat(nameOfFile, "_DERSPROGRAMI");
 	strcat(nameOfFile,".txt");
-	
 	
 	while(ptr!=NULL){
 		i = 0;
@@ -653,14 +651,11 @@ void printClassesOfStudent(CLASS** head){
 	printf("\n");	
 }
 
-
 void addNewClassToList(CLASS** head){
-	
 	CLASS *ptr, *cp, *prevPtr;
 
 	ptr = *head;	
-	cp = createClass();
-	
+	cp = createClass();	
 	
 	if(strcmp(ptr->ID, cp->ID) > 0){
 		cp->next = ptr;
@@ -726,6 +721,38 @@ void updateStates(CLASSREGISTIRATION** headOfClassRegList, char* newState, char*
 	}
 }
 
+void increaseCredit(int* totalCredit, int incrementQuantity){
+	*(totalCredit) += incrementQuantity; 	
+}
+
+void decreaseCredit(int* totalCredit, int decrementQuantity){
+	*(totalCredit) -= decrementQuantity;
+}
+
+void increaseNumOfClass(int* totalNumOfClass){
+	*(totalNumOfClass) += 1;
+}
+
+void decreaseNumOfClass(int* totalNumOfClass){
+	*(totalNumOfClass) -= 1;
+}
+
+// degisken adlarini guncelle
+void updateStudentCredit(STUDENT** head, int id, int creditQuantity, int classNumberQuantity, void(*updateCreditFunction)(int* totalCredit, int decrementQuantity),void(*updateNumOfClassFunction)(int* totalNumOfClass) ){
+	STUDENT *ptr;
+	
+	ptr = *head;
+	
+	while(ptr!=NULL && ptr->ID != id){
+		ptr = ptr->next;
+	}
+	
+	if(ptr!=NULL){
+		updateCreditFunction(&(ptr->totalCredit),creditQuantity);
+		//updateNumOfClassFunction(&(ptr->));
+	}
+}
+
 void deleteClassFromList(CLASS** head,CLASSREGISTIRATION** headOfClassRegList){
 	CLASS* ptr;
 	CLASS* prevPtr;
@@ -743,6 +770,9 @@ void deleteClassFromList(CLASS** head,CLASSREGISTIRATION** headOfClassRegList){
 		*head = ptr->next;
 		printf("%s kodlu ders basariyla kapatildi\n", id);
 		updateStates(headOfClassRegList, "ders_kapandi",id);
+		for(i=0; i<ptr->numOfStudents; i++){
+			//updateStudentCredit(&temporaryStudent,*((ptr->idsOfStudents)+i),ptr->credit,1,decreaseCredit(),);
+		}
 		return;
 	}
 	
@@ -815,7 +845,6 @@ void getStudentListOfClass(CLASS** headOfClassList, STUDENT **headOfStudentList,
 	}
 }
 
-
 CLASSREGISTIRATION* createClassRec(int id, char* classId, int studentId){
 	CLASSREGISTIRATION* p;
 	
@@ -824,6 +853,7 @@ CLASSREGISTIRATION* createClassRec(int id, char* classId, int studentId){
 	p->ID = id;
 	strcpy(p->idOfClass,classId);
 	p->idOfStudent = studentId;
+
 	strcpy(p->date,"01.01.1975"); 
 	strcpy(p->state, "kayitli");
 	p->next = NULL;
@@ -989,7 +1019,7 @@ void updateStudentsFile(STUDENT** head){
 	fp = fopen("ogrenciler.txt", "w");
 	
 	while(ptr != NULL){
-		fprintf(fp,"%d,%s , %s , %d,%d\n",ptr->ID, ptr->name,ptr->surname,ptr->totalCredit,ptr->numOfClasses);	
+		fprintf(fp,"%d,%s,%s,%d,%d\n",ptr->ID, ptr->name,ptr->surname,ptr->totalCredit,ptr->numOfClasses);	
 		ptr = ptr->next;
 	}	
 }
@@ -1002,7 +1032,7 @@ void updateClassesFile(CLASS** head){
 	fp = fopen("dersler.txt", "w");
 	
 	while(ptr != NULL){
-		fprintf(fp,"%s , %s ,%d,%d\n",ptr->ID,ptr->name,ptr->credit,ptr->capacity);
+		fprintf(fp,"%s,%s,%d,%d\n",ptr->ID,ptr->name,ptr->credit,ptr->capacity);
 		ptr = ptr->next;
 	}
 }
