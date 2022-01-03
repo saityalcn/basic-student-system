@@ -751,7 +751,6 @@ void decreaseNumOfClass(int* totalNumOfClass){
 	*(totalNumOfClass) -= 1;
 }
 
-// degisken adlarini guncelle
 void updateStudentCredit(STUDENT** head, int id, int creditQuantity, void(*updateCreditFunction)(int* , int ),void(*updateNumOfClassFunction)(int*) ){
 	STUDENT *ptr;
 	
@@ -766,7 +765,7 @@ void updateStudentCredit(STUDENT** head, int id, int creditQuantity, void(*updat
 		updateCreditFunction(&(ptr->totalCredit),creditQuantity);
 		updateNumOfClassFunction(&(ptr->numOfClasses));
 	}
-	printf("FUNC SON\n");
+
 }
 
 void deleteClassFromList(CLASS** head,CLASSREGISTIRATION** headOfClassRegList,STUDENT** headOfStudentList){
@@ -863,6 +862,55 @@ void getStudentListOfClass(CLASS** headOfClassList, STUDENT **headOfStudentList,
 	}
 }
 
+char* createDateText(){
+	int length = 8;	
+	
+	char date[30],day[5], month[5], year[5];
+	char *dateText;
+	char* token;
+	int i;
+	char *months[] =  {	"Jan",
+						"Feb",
+						"Mar",
+						"Apr",
+						"May",
+						"Jun",
+						"Jul",
+						"Aug",
+						"Sep",
+						"Oct",
+						"Nov",
+						"Dec",
+						};
+	
+
+	dateText = (char*)malloc(length*sizeof(char));
+	
+	strcpy(date,__DATE__);
+	
+	token=strtok(date,"  ");
+	
+	i = 0;
+	while(strcmp(months[i],token) != 0 && i<12)
+		i++;
+	
+	itoa(i+1,month,2);
+	
+	token = strtok(NULL," ");
+	strcpy(day,token);
+	token = strtok(NULL," ");
+	strcpy(year,token);
+	
+	strcpy(dateText,day);
+	strcat(dateText,".");
+	strcat(dateText,month);
+	strcat(dateText,".");
+	strcat(dateText,year);
+	strcat(dateText,"\0");
+	
+	return dateText;
+}
+
 CLASSREGISTIRATION* createClassRec(int id, char* classId, int studentId){
 	CLASSREGISTIRATION* p;
 	
@@ -872,7 +920,7 @@ CLASSREGISTIRATION* createClassRec(int id, char* classId, int studentId){
 	strcpy(p->idOfClass,classId);
 	p->idOfStudent = studentId;
 	
-	strcpy(p->date,"01.01.1975"); 
+	strcpy(p->date,createDateText()); 
 	strcpy(p->state, "kayitli");
 	p->next = NULL;
 	
