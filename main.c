@@ -233,10 +233,10 @@ CLASS* getClassInformationFromFile(FILE *fp,char delimiter[2]){
 	
 	fgets(buf,255,fp);
 	
-	tmp=strtok(buf,delimiter);	//
+	tmp=strtok(buf,delimiter);
 	strcpy(cp->ID,tmp);
 
-	tmp=strtok(NULL,delimiter);		//
+	tmp=strtok(NULL,delimiter);
 	strcpy(cp->name,tmp);
 	
 	tmp=strtok(NULL,delimiter);
@@ -283,22 +283,35 @@ void getClassRegistirationsFromFile(CLASSREGISTIRATION** head){
 }
 
 CLASSREGISTIRATION* getClassRegInfo(FILE* fp){
-	int id,idOfStudent;
-	char idOfClass[CHAR_SIZE],date[CHAR_SIZE],state[CHAR_SIZE];
+	
 	CLASSREGISTIRATION* p;
+	char buf[256],delim[] = ",\0";
+	char *tmp;
 	
 	p = (CLASSREGISTIRATION*)malloc(sizeof(CLASSREGISTIRATION));
 	
-	fscanf(fp,"%d,%s ,%d,%s ,%s\n",&id,idOfClass,&idOfStudent,date,state);
-	printf("%d,%s ,%d,%s ,%s\n\n",id,idOfClass,idOfStudent,date,state);
+	fgets(buf, 255,fp);
 	
-	p->ID = id;
-	strcpy(p->idOfClass,idOfClass);
-	p->idOfStudent = idOfStudent;
-	strcpy(p->date,date);
-	strcpy(p->state, state);
+	printf("%s", buf);
+	
+	tmp = strtok(buf,delim);
+	p->ID = atoi(tmp);
+	
+	tmp = strtok(NULL,delim);
+	strcpy(p->idOfClass, tmp);
+	
+	tmp = strtok(NULL,delim);
+	p->idOfStudent = atoi(tmp);
+	
+	tmp = strtok(NULL,delim);
+	strcpy(p->date,tmp);
+	tmp = strtok(NULL,delim);
+	
+	tmp[strlen(tmp)-1] = '\0';
+	strcpy(p->state,tmp);
+	
 	p->next = NULL;
-
+	
 	return p;
 }
 
@@ -320,6 +333,7 @@ void getClassesInformations(CLASS** headOfClassesList){
 	int id, numOfLines,i,lineNumber,IDOfStudent;
 	char IDOfClass[10],date[CHAR_SIZE],state[CHAR_SIZE],nameOfFile[] = "OgrenciDersKayit.txt";;
 	CLASS* ptr;
+	CLASSREGISTIRATION* ptrCR;
 	FILE *fp;
 	
 	numOfLines = countLineNumberOfDoc(nameOfFile);
@@ -333,11 +347,11 @@ void getClassesInformations(CLASS** headOfClassesList){
 		lineNumber = 0;
 		
 		while(lineNumber < numOfLines){
-			fscanf(fp,"%d,%s ,%d,%s ,%s\n", &id,IDOfClass,&IDOfStudent,date,state);
-			if(strcmp(state,"kayitli") == 0 && strcmp(IDOfClass,ptr->ID) == 0){
+			ptrCR = getClassRegInfo(fp);
+			if(strcmp(ptrCR->state,"kayitli") == 0 && strcmp(ptrCR->idOfClass,ptr->ID) == 0){
 				(ptr->numOfStudents)++;
 				(ptr->idsOfStudents) = (int*)realloc((ptr->idsOfStudents),(ptr->numOfStudents)*sizeof(int));
-				*((ptr->idsOfStudents)+i) = IDOfStudent;
+				*((ptr->idsOfStudents)+i) = ptrCR->idOfStudent;
 				i++;
 			}
 			lineNumber++;
@@ -738,7 +752,7 @@ void decreaseNumOfClass(int* totalNumOfClass){
 }
 
 // degisken adlarini guncelle
-void updateStudentCredit(STUDENT** head, int id, int creditQuantity, int classNumberQuantity, void(*updateCreditFunction)(int* totalCredit, int decrementQuantity),void(*updateNumOfClassFunction)(int* totalNumOfClass) ){
+void updateStudentCredit(STUDENT** head, int id, int creditQuantity, int classNumberQuantity, void(*updateCreditFunction)(int* , int ),void(*updateNumOfClassFunction)(int*) ){
 	STUDENT *ptr;
 	
 	ptr = *head;
@@ -1045,7 +1059,7 @@ void updateClassRegistirationFile(CLASSREGISTIRATION** head){
 	fp = fopen("OgrenciDersKayit.txt", "w");
 	
 	while(ptr != NULL){
-		fprintf(fp,"%d,%s ,%d,%s ,%s\n",ptr->ID,ptr->idOfClass,ptr->idOfStudent,ptr->date,ptr->state);
+		fprintf(fp,"%d,%s,%d,%s,%s\n",ptr->ID,ptr->idOfClass,ptr->idOfStudent,ptr->date,ptr->state);
 		ptr = ptr->next;
 	}
 }
