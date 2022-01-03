@@ -57,7 +57,7 @@ void deleteStudent(STUDENT** head, STUDENT** tail,CLASSREGISTIRATION** headOfCla
 void printClassesOfStudent(CLASS** head);
 void addNewClassToList(CLASS **head);
 CLASS* createClass();
-void deleteClassFromList(CLASS **head, CLASSREGISTIRATION** headOfClassRegList);
+void deleteClassFromList(CLASS **head, CLASSREGISTIRATION** headOfClassRegList,STUDENT** headOfStudentList);
 void addStudentToClass();
 void getStudentListOfClass(CLASS **headOfClassList, STUDENT **headOfStudentList,STUDENT** tailOfStudentList);
 void selectClassOperations(CLASS **headOfClassList, STUDENT** headOfStudentList, STUDENT** tailOfStudentList, CLASSREGISTIRATION** headOfClassRegList,int creditLimit, int numOfClassLimit);
@@ -441,7 +441,7 @@ void classOperations(CLASS** headOfClassList, STUDENT** headOfStudentList,STUDEN
 			addNewClassToList(headOfClassList);
 		
 		else if(classOperationsMenuInput == 2)
-			deleteClassFromList(headOfClassList, headOfClassRegList);
+			deleteClassFromList(headOfClassList, headOfClassRegList,headOfStudentList);
 			
 		else if(classOperationsMenuInput == 3){
 			getStudentListOfClass(headOfClassList,headOfStudentList,tailOfStudentList);
@@ -752,7 +752,7 @@ void decreaseNumOfClass(int* totalNumOfClass){
 }
 
 // degisken adlarini guncelle
-void updateStudentCredit(STUDENT** head, int id, int creditQuantity, int classNumberQuantity, void(*updateCreditFunction)(int* , int ),void(*updateNumOfClassFunction)(int*) ){
+void updateStudentCredit(STUDENT** head, int id, int creditQuantity, void(*updateCreditFunction)(int* , int ),void(*updateNumOfClassFunction)(int*) ){
 	STUDENT *ptr;
 	
 	ptr = *head;
@@ -762,16 +762,18 @@ void updateStudentCredit(STUDENT** head, int id, int creditQuantity, int classNu
 	}
 	
 	if(ptr!=NULL){
+		printf("\n%d\n", ptr->ID);
 		updateCreditFunction(&(ptr->totalCredit),creditQuantity);
-		//updateNumOfClassFunction(&(ptr->));
+		updateNumOfClassFunction(&(ptr->numOfClasses));
 	}
+	printf("FUNC SON\n");
 }
 
-void deleteClassFromList(CLASS** head,CLASSREGISTIRATION** headOfClassRegList){
+void deleteClassFromList(CLASS** head,CLASSREGISTIRATION** headOfClassRegList,STUDENT** headOfStudentList){
 	CLASS* ptr;
 	CLASS* prevPtr;
 	FILE *fp;
-	STUDENT *temporaryStudent;
+
 	char id[10];
 	int i;
 	
@@ -784,8 +786,8 @@ void deleteClassFromList(CLASS** head,CLASSREGISTIRATION** headOfClassRegList){
 		*head = ptr->next;
 		printf("%s kodlu ders basariyla kapatildi\n", id);
 		updateStates(headOfClassRegList, "ders_kapandi",id);
-		for(i=0; i<ptr->numOfStudents; i++){
-			//updateStudentCredit(&temporaryStudent,*((ptr->idsOfStudents)+i),ptr->credit,1,decreaseCredit(),);
+		for(i=0; i<(ptr->numOfStudents); i++){
+			updateStudentCredit(headOfStudentList,*((ptr->idsOfStudents)+i),ptr->credit,decreaseCredit,decreaseNumOfClass);
 		}
 		return;
 	}
@@ -803,8 +805,10 @@ void deleteClassFromList(CLASS** head,CLASSREGISTIRATION** headOfClassRegList){
 	else{
 		prevPtr->next = ptr->next;
 		printf("%s kodlu ders basariyla kapatildi\n", id);
-		// ogrencilerin de kredileri ve aldiklari ders sayilari guncellenmeli
 		updateStates(headOfClassRegList, "ders_kapandi",id);
+		for(i=0; i<(ptr->numOfStudents); i++){
+			updateStudentCredit(headOfStudentList,*((ptr->idsOfStudents)+i),ptr->credit,decreaseCredit,decreaseNumOfClass);
+		}
 	}
 }
 
@@ -867,7 +871,8 @@ CLASSREGISTIRATION* createClassRec(int id, char* classId, int studentId){
 	p->ID = id;
 	strcpy(p->idOfClass,classId);
 	p->idOfStudent = studentId;
-
+	
+	// TARIH SISTEMDEN CEKILMELI
 	strcpy(p->date,"01.01.1975"); 
 	strcpy(p->state, "kayitli");
 	p->next = NULL;
@@ -976,7 +981,6 @@ void removeStudentFromClass(CLASS** headOfClassList, STUDENT** headOfStudentList
 		while(i<clsPtr->numOfStudents && *((clsPtr->idsOfStudents)+i) != studentId){
 			i++;
 		}
-	
 				
 		for(j=i; j<clsPtr->numOfStudents; j++){
 			*((clsPtr->idsOfStudents)+j) = *((clsPtr->idsOfStudents)+j+1);
