@@ -872,7 +872,6 @@ CLASSREGISTIRATION* createClassRec(int id, char* classId, int studentId){
 	strcpy(p->idOfClass,classId);
 	p->idOfStudent = studentId;
 	
-	// TARIH SISTEMDEN CEKILMELI
 	strcpy(p->date,"01.01.1975"); 
 	strcpy(p->state, "kayitli");
 	p->next = NULL;
