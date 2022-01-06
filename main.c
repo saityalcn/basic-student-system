@@ -985,8 +985,7 @@ void selectClass(CLASS** headOfClassList, STUDENT** headOfStudentList, STUDENT**
 		*((clsPtr->idsOfStudents)+clsPtr->numOfStudents-1) = studentId;
 		sortList(clsPtr->idsOfStudents, clsPtr->numOfStudents);
 		
-		(stdPtr->numOfClasses)++;
-		stdPtr->totalCredit = (stdPtr->totalCredit) + (clsPtr->credit);
+		updateStudentCredit(headOfStudentList,*((clsPtr->idsOfStudents)+i),clsPtr->credit,increaseCredit,increaseNumOfClass);
 				
 		clsRegPtr = *headOfClassRegList;
 		
@@ -1046,7 +1045,6 @@ void removeStudentFromClass(CLASS** headOfClassList, STUDENT** headOfStudentList
 		}
 		clsPtr = clsPtr->next;	
 	}
-
 	
 	printf("Silmek istediginiz dersin kodunu giriniz: ");
 	scanf("%s", idOfClass);
