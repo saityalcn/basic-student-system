@@ -1004,13 +1004,18 @@ void selectClass(CLASS** headOfClassList, STUDENT** headOfStudentList, STUDENT**
 		else{
 			clsRegPtr = *headOfClassRegList;
 		
-			while(clsRegPtr->next != NULL){
-				clsRegPtr = clsRegPtr->next;
-				prevRecordId = clsRegPtr->ID;
+			if(*headOfClassRegList == NULL){
+				*headOfClassRegList = createClassRec(prevRecordId+1, idOfClass, studentId); 
 			}
+			else{
+				while(clsRegPtr->next != NULL){
+					clsRegPtr = clsRegPtr->next;
+					prevRecordId = clsRegPtr->ID;
+				}
 		
-			clsRegPtr->next = createClassRec(prevRecordId+1, idOfClass, studentId);
-			printf("%s kodlu ders basariyla alindi.\n",idOfClass);
+				clsRegPtr->next = createClassRec(prevRecordId+1, idOfClass, studentId);
+				printf("%s kodlu ders basariyla alindi.\n",idOfClass);
+			}
 		}
 	}
 	else{
