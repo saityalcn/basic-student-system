@@ -2,9 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <locale.h>
-#define CHAR_SIZE_LONG 100
-#define CHAR_SIZE_MIDDLE 50
-#define CHAR_SIZE_SHORT 30
+#define CHAR_SIZE 50
 
 typedef struct Student{
 	int ID;
@@ -17,7 +15,7 @@ typedef struct Student{
 }STUDENT;
 
 typedef struct Class{
-	char ID[CHAR_SIZE];
+	char ID[10];
 	char name[CHAR_SIZE];
 	int credit;
 	int capacity;
