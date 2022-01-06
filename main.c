@@ -2,7 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <locale.h>
-#define CHAR_SIZE 50
+#define CHAR_SIZE_LONG 100
+#define CHAR_SIZE_MIDDLE 50
+#define CHAR_SIZE_SHORT 30
 
 typedef struct Student{
 	int ID;
@@ -15,7 +17,7 @@ typedef struct Student{
 }STUDENT;
 
 typedef struct Class{
-	char ID[10];
+	char ID[CHAR_SIZE];
 	char name[CHAR_SIZE];
 	int credit;
 	int capacity;
@@ -35,36 +37,42 @@ typedef struct classRegistiration{
 
 int countLineNumberOfDoc(char *name);
 int isFileEmpty(char *nameOfDoc);
-void getStudentsFromDoc();
-void getClassesFromDoc();
-void menu(STUDENT** headOfStudentsList, STUDENT** tailOfStudentList, CLASS** headOfClassesList, CLASSREGISTIRATION** headOfClassReg, int totalNumOfCredit, int totalNumOfClass);
-void studentOperations(STUDENT** headOfStudentsList,STUDENT ** tailOfStudentList,CLASS** headOfClassesList,CLASSREGISTIRATION** headOfClassRegList);
-void classOperations(CLASS **headOfClassList, STUDENT** headOfStudentList, STUDENT** tailOfStudentList,CLASSREGISTIRATION** headOfClassRegList);
-STUDENT* getStudentInformationFromFile(FILE *fp, char delimeter[2]);
-void addStudent(STUDENT** head, STUDENT** tail);
+void getStudentsFromDoc(STUDENT** head, STUDENT** tail);
+STUDENT* getStudentInformationFromFile(FILE *fp,char delimiter[2]);
+void getClassesFromDoc(CLASS** head);
 CLASS* getClassInformationFromFile(FILE *fp,char delimiter[2]);
 void getClassRegistirationsFromFile(CLASSREGISTIRATION** head);
 CLASSREGISTIRATION* getClassRegInfo(FILE* fp);
-void sortList();
+void sortList(int* list, int n);
 void getClassesInformations(CLASS** headOfClassesList);
-STUDENT* createStudent();
-STUDENT* findStudent(int id, STUDENT** head);
+void menu(STUDENT** headOfStudentsList,STUDENT** tailOfStudentList, CLASS** headOfClassesList, CLASSREGISTIRATION** headOfClassRegList,int totalNumOfCredit, int totalNumOfClass);
+void studentOperations(STUDENT** head, STUDENT** tail, CLASS** headOfClassList,CLASSREGISTIRATION** headOfClassRegList);
+void classOperations(CLASS** headOfClassList, STUDENT** headOfStudentList,STUDENT** tailOfStudentList,CLASSREGISTIRATION** headOfClassRegList);
+void selectClassOperations(CLASS** headOfClassList, STUDENT** headOfStudentList, STUDENT** tailOfStudentList,CLASSREGISTIRATION** headOfClassRegList, int creditLimit, int numOfClassLimit);
+void printStudentList(STUDENT **head);
+void printStudentListV2(STUDENT **tail);
+void addStudent(STUDENT** head,STUDENT **tail);
+STUDENT* createStudent(int id);
+STUDENT* findStudent(int id, STUDENT **head);
 void deleteStudent(STUDENT** head, STUDENT** tail,CLASSREGISTIRATION** headOfClassRegList);
 void printClassesOfStudent(CLASS** head);
-void addNewClassToList(CLASS **head);
+void addNewClassToList(CLASS** head);
 CLASS* createClass();
-void deleteClassFromList(CLASS **head, CLASSREGISTIRATION** headOfClassRegList,STUDENT** headOfStudentList);
-void addStudentToClass();
-void getStudentListOfClass(CLASS **headOfClassList, STUDENT **headOfStudentList,STUDENT** tailOfStudentList);
-void selectClassOperations(CLASS **headOfClassList, STUDENT** headOfStudentList, STUDENT** tailOfStudentList, CLASSREGISTIRATION** headOfClassRegList,int creditLimit, int numOfClassLimit);
-void selectClass(CLASS** headOfClassList, STUDENT** headOfStudentList, STUDENT** tailOfStudentList, CLASSREGISTIRATION** headOfClassRegList,int studentId,int creditLimit, int numOfClassLimit);
-void removeStudentFromClass(CLASS** headOfClassList, STUDENT** headOfStudentList, STUDENT** tailOfStudentList, CLASSREGISTIRATION** headOfClassRegList, int studentId);
+void updateStates(CLASSREGISTIRATION** headOfClassRegList, char* newState, char* idOfClass);
+void increaseCredit(int* totalCredit, int incrementQuantity);
+void decreaseCredit(int* totalCredit, int decrementQuantity);
+void increaseNumOfClass(int* totalNumOfClass);
+void decreaseNumOfClass(int* totalNumOfClass);
+void updateStudentCredit(STUDENT** head, int id, int creditQuantity, void(*updateCreditFunction)(int* , int ),void(*updateNumOfClassFunction)(int*) );
+void deleteClassFromList(CLASS** head,CLASSREGISTIRATION** headOfClassRegList,STUDENT** headOfStudentList);
+void getStudentListOfClass(CLASS** headOfClassList, STUDENT **headOfStudentList,STUDENT** tailOfStudentList);
+char* createDateText();
+CLASSREGISTIRATION* createClassRec(int id, char* classId, int studentId);
+void selectClass(CLASS** headOfClassList, STUDENT** headOfStudentList, STUDENT** tailOfStudentList, CLASSREGISTIRATION **headOfClassRegList,int studentId, int creditLimit, int numOfClassLimit);
+void removeStudentFromClass(CLASS** headOfClassList, STUDENT** headOfStudentList, STUDENT** tailOfStudentList,CLASSREGISTIRATION** headOfClassRegList,int studentId);
 void updateStudentsFile(STUDENT** head);
 void updateClassesFile(CLASS** head);
 void updateClassRegistirationFile(CLASSREGISTIRATION** head);
-void printStudentList(STUDENT** head);
-void printStudentListV2(STUDENT** tail);
-void printClassesList(CLASS** head);
 
 int main(void){
 	int totalNumOfCredit, totalNumOfClass;
@@ -88,7 +96,6 @@ int main(void){
 	getStudentsFromDoc(&headOfStudentsList, &tailOfStudentsList);
 	getClassesFromDoc(&headOfClassesList);
 	getClassRegistirationsFromFile(&headOfClassRegList);
-
 	getClassesInformations(&headOfClassesList);
 	
 	menu(&headOfStudentsList,&tailOfStudentsList, &headOfClassesList,&headOfClassRegList, totalNumOfCredit,totalNumOfClass);
@@ -97,6 +104,11 @@ int main(void){
 	updateClassesFile(&headOfClassesList);
 	updateClassRegistirationFile(&headOfClassRegList);
 	
+	free(headOfStudentsList);
+	free(tailOfStudentsList);
+	free(headOfClassesList);
+	free(headOfClassRegList);
+
 	return 0;
 }
 
@@ -116,7 +128,6 @@ int countLineNumberOfDoc(char *name){
 	
 	return lineNumber;
 }
-
 
 int isFileEmpty(char *nameOfDoc){
 	int size;
@@ -377,10 +388,8 @@ void getClassesInformations(CLASS** headOfClassesList){
 		ptr = ptr->next;
 		rewind(fp);
 	}
-
 	fclose(fp);
-	ptr = *headOfClassesList;
-	
+	ptr = *headOfClassesList;	
 }
 
 void menu(STUDENT** headOfStudentsList,STUDENT** tailOfStudentList, CLASS** headOfClassesList, CLASSREGISTIRATION** headOfClassRegList,int totalNumOfCredit, int totalNumOfClass){
@@ -430,9 +439,7 @@ void studentOperations(STUDENT** head, STUDENT** tail, CLASS** headOfClassList,C
 		else if(studentOperationsMenuInput == 3)
 			printClassesOfStudent(headOfClassList);			
 	}
-	
 }
-
 
 void classOperations(CLASS** headOfClassList, STUDENT** headOfStudentList,STUDENT** tailOfStudentList,CLASSREGISTIRATION** headOfClassRegList){
 	int classOperationsMenuInput = 1;
@@ -454,8 +461,7 @@ void classOperations(CLASS** headOfClassList, STUDENT** headOfStudentList,STUDEN
 		else if(classOperationsMenuInput == 3){
 			getStudentListOfClass(headOfClassList,headOfStudentList,tailOfStudentList);
 		}
-	}
-	
+	}	
 }
 
 void selectClassOperations(CLASS** headOfClassList, STUDENT** headOfStudentList, STUDENT** tailOfStudentList,CLASSREGISTIRATION** headOfClassRegList, int creditLimit, int numOfClassLimit){
@@ -522,7 +528,6 @@ void printStudentListV2(STUDENT **tail){
 		ptr = ptr->prev;
 	}
 }
-
 
 void addStudent(STUDENT** head,STUDENT **tail){	
 	STUDENT* ptr;
@@ -783,7 +788,6 @@ void updateStudentCredit(STUDENT** head, int id, int creditQuantity, void(*updat
 		updateCreditFunction(&(ptr->totalCredit),creditQuantity);
 		updateNumOfClassFunction(&(ptr->numOfClasses));
 	}
-
 }
 
 void deleteClassFromList(CLASS** head,CLASSREGISTIRATION** headOfClassRegList,STUDENT** headOfStudentList){
