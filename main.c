@@ -876,16 +876,20 @@ void getStudentListOfClass(CLASS** headOfClassList, STUDENT **headOfStudentList,
 			stdPtr = *headOfStudentList;	
 			for(i=0; i<clsPtr->numOfStudents; i++){
 				stdPtr = findStudent(idsOfStudents[i], headOfStudentList);
-				fprintf(fp,"%d,%d,%s,%s\n",i+1,stdPtr->ID,stdPtr->name, stdPtr->surname);
-				printf("%d %s %s\n",stdPtr->ID,stdPtr->name, stdPtr->surname);
+				if(stdPtr != NULL){
+					fprintf(fp,"%d,%d,%s,%s\n",i+1,stdPtr->ID,stdPtr->name, stdPtr->surname);
+					printf("%d %s %s\n",stdPtr->ID,stdPtr->name, stdPtr->surname);	
+				}
 			}
 		}
 		else{
 			stdPtr = *tailOfStudentList;	
 			for(i=0; i<clsPtr->numOfStudents; i++){
 				stdPtr = findStudent(idsOfStudents[i], tailOfStudentList);
-				fprintf(fp,"%d,%d,%s,%s\n",i+1,stdPtr->ID,stdPtr->name, stdPtr->surname);
-				printf("%d %s %s\n",stdPtr->ID,stdPtr->name, stdPtr->surname);
+				if(stdPtr != NULL){
+					fprintf(fp,"%d,%d,%s,%s\n",i+1,stdPtr->ID,stdPtr->name, stdPtr->surname);
+					printf("%d %s %s\n",stdPtr->ID,stdPtr->name, stdPtr->surname);	
+				}
 			}
 		}
 		printf("%s kodlu dersin listesi %s dosyasina kaydedildi.\n",id,nameOfDoc);
